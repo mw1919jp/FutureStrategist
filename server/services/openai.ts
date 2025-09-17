@@ -39,30 +39,26 @@ export interface ExpertPrediction {
 export class OpenAIService {
   async predictExpertInfo(expertName: string): Promise<ExpertPrediction> {
     try {
-      const prompt = `専門家名から、その専門家の詳細情報を推測して提供してください。
+      const prompt = `専門家名: ${expertName}
 
-専門家名: ${expertName}
-
-以下のJSON形式で回答してください:
+以下のJSON形式で簡潔に回答:
 {
-  "role": "この専門家の具体的な役割（例：デジタルマーケティングの戦略立案と実行支援を行う）",
-  "specialization": "主要専門分野（例：デジタルマーケティング）", 
-  "expertiseLevel": "専門性レベル（specialist/expert/senior のいずれか）",
-  "subSpecializations": ["詳細専門領域1", "詳細専門領域2", "詳細専門領域3"],
-  "informationSources": ["情報源1", "情報源2", "情報源3"], 
-  "researchFocus": "研究フォーカス（この専門家が重点的に研究している分野）"
+  "role": "簡潔な役割（1-2行）",
+  "specialization": "主要専門分野",
+  "expertiseLevel": "specialist/expert/senior のいずれか",
+  "subSpecializations": ["領域1", "領域2", "領域3"],
+  "informationSources": ["情報源1", "情報源2"],
+  "researchFocus": "研究フォーカス（簡潔に）"
 }
 
-注意：
-- expertiseLevelは必ず "specialist", "expert", "senior" のいずれかを指定
-- subSpecializationsは3-5個の具体的な詳細領域を提供
-- informationSourcesは業界誌、学会、データベースなど具体的な情報源を提供
-- すべて日本語で回答し、実践的で現実的な内容にしてください`;
+要点を絞り実用的な内容で日本語回答。`;
 
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: "gpt-4-turbo",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
+        max_tokens: 300,
+        temperature: 0.7,
       });
 
       const responseContent = response.choices[0].message.content || "{}";
