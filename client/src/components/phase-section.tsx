@@ -69,7 +69,7 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
         >
           {phaseNumber}
         </div>
-        <h3 className="text-lg font-semibold text-foreground" data-testid={`text-phase-title-${phaseNumber}`}>
+        <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100" data-testid={`text-phase-title-${phaseNumber}`}>
           {icon} Phase{phaseNumber}: {phase.title}
         </h3>
         <Button
@@ -91,7 +91,7 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
         <div className="space-y-4">
           {/* Phase content */}
           {phase.content && !strategicAlignment && (
-            <div className="text-sm text-foreground leading-relaxed" data-testid={`text-phase-content-${phaseNumber}`}>
+            <div className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" data-testid={`text-phase-content-${phaseNumber}`}>
               {phase.content}
             </div>
           )}
@@ -131,7 +131,7 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
           {/* Strategic alignment display for Phase 4 */}
           {strategicAlignment && (
             <div className="space-y-4">
-              <div className="text-sm text-foreground leading-relaxed mb-4">
+              <div className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed mb-4">
                 現在の経営戦略の整合性評価結果：
               </div>
               
@@ -181,7 +181,7 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
               data-testid={`recommendations-section-${phaseNumber}`}
             >
               <h4 className="font-medium text-secondary mb-3">主要推奨事項</h4>
-              <ul className="text-sm text-foreground space-y-1">
+              <ul className="text-sm text-gray-800 dark:text-gray-200 space-y-1">
                 {phase.recommendations.map((rec, index) => (
                   <li key={index} data-testid={`text-phase-recommendation-${phaseNumber}-${index}`}>
                     • {rec}

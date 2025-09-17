@@ -69,34 +69,34 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
         <div className="mb-4">
           <div className="flex items-center space-x-3 mb-4">
             <BarChart3 className="h-5 w-5 text-primary" />
-            <h2 className="text-lg font-semibold text-foreground" data-testid="text-analysis-title">📊 分析進捗状況</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100" data-testid="text-analysis-title">📊 分析進捗状況</h2>
           </div>
           
           {analysis.results && typeof analysis.results === 'object' && 'phases' in analysis.results && Array.isArray((analysis.results as any).phases) && (analysis.results as any).phases?.[0]?.analyses && (
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm mb-4">
               <div>
-                <span className="text-muted-foreground">分析ID:</span>
-                <span className="text-foreground ml-2" data-testid={`text-analysis-id`}>
+                <span className="text-gray-600 dark:text-gray-400">分析ID:</span>
+                <span className="text-gray-900 dark:text-gray-100 ml-2" data-testid={`text-analysis-id`}>
                   {analysis.id.slice(0, 8)}...
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground">現在のフェーズ:</span>
-                <span className="text-foreground ml-2" data-testid={`text-current-phase`}>
+                <span className="text-gray-600 dark:text-gray-400">現在のフェーズ:</span>
+                <span className="text-gray-900 dark:text-gray-100 ml-2" data-testid={`text-current-phase`}>
                   Phase {analysis.currentPhase}
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground">ステータス:</span>
-                <span className="text-foreground ml-2" data-testid={`text-status`}>
+                <span className="text-gray-600 dark:text-gray-400">ステータス:</span>
+                <span className="text-gray-900 dark:text-gray-100 ml-2" data-testid={`text-status`}>
                   {analysis.status === "running" ? "実行中" : 
                    analysis.status === "completed" ? "完了" : 
                    analysis.status === "failed" ? "失敗" : "待機中"}
                 </span>
               </div>
               <div>
-                <span className="text-muted-foreground">進捗:</span>
-                <span className="text-foreground ml-2" data-testid={`text-progress`}>
+                <span className="text-gray-600 dark:text-gray-400">進捗:</span>
+                <span className="text-gray-900 dark:text-gray-100 ml-2" data-testid={`text-progress`}>
                   {analysis.progress}%
                 </span>
               </div>
@@ -122,7 +122,7 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                         : "bg-gray-200 dark:bg-gray-700"
                   }`} 
                 />
-                <span className={`text-sm ${isActive ? "text-foreground" : "text-muted-foreground"}`}>
+                <span className={`text-sm ${isActive ? "text-gray-900 dark:text-gray-100" : "text-gray-600 dark:text-gray-400"}`}>
                   {phase.name}
                   {isCurrent && !isCompleted && "..."}
                 </span>
@@ -142,7 +142,7 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                     }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground" data-testid={`text-phase-status-${phase.id}`}>
+                <span className="text-xs text-gray-600 dark:text-gray-400" data-testid={`text-phase-status-${phase.id}`}>
                   {isComplete ? "完了" : isCurrent ? `${progress}%` : "待機中"}
                 </span>
               </div>
@@ -155,7 +155,7 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
           <div className="mt-6 border-t border-border pt-6">
             <div className="flex items-center space-x-3 mb-4">
               <Terminal className="h-5 w-5 text-secondary" />
-              <h3 className="text-sm font-medium text-foreground">リアルタイム実行ログ</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">リアルタイム実行ログ</h3>
               {isConnected && (
                 <div className="flex items-center space-x-1 text-xs text-secondary">
                   <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
@@ -166,7 +166,7 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
             
             <div className="bg-gray-50 dark:bg-gray-900 border border-border rounded-lg p-4 max-h-64 overflow-y-auto">
               {logs.length === 0 ? (
-                <div className="text-sm text-muted-foreground flex items-center space-x-2">
+                <div className="text-sm text-gray-600 dark:text-gray-400 flex items-center space-x-2">
                   <Clock className="h-4 w-4" />
                   <span>実行ログを待機中...</span>
                 </div>
