@@ -4,6 +4,8 @@ import { Plus, X, Bus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { queryClient, apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
@@ -13,6 +15,13 @@ export default function ExpertConfig() {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [newExpertName, setNewExpertName] = useState("");
   const [newExpertRole, setNewExpertRole] = useState("");
+  const [newSpecialization, setNewSpecialization] = useState("");
+  const [newSubSpecializations, setNewSubSpecializations] = useState<string[]>([]);
+  const [newInformationSources, setNewInformationSources] = useState<string[]>([]);
+  const [newExpertiseLevel, setNewExpertiseLevel] = useState("expert");
+  const [newResearchFocus, setNewResearchFocus] = useState("");
+  const [currentSubSpec, setCurrentSubSpec] = useState("");
+  const [currentInfoSource, setCurrentInfoSource] = useState("");
   const { toast } = useToast();
 
   const { data: experts = [], isLoading } = useQuery<Expert[]>({
@@ -20,15 +29,22 @@ export default function ExpertConfig() {
   });
 
   const addExpertMutation = useMutation({
-    mutationFn: async (expertData: { name: string; role: string; specialization: string }) => {
+    mutationFn: async (expertData: { 
+      name: string; 
+      role: string; 
+      specialization: string;
+      subSpecializations?: unknown;
+      informationSources?: unknown;
+      expertiseLevel?: string;
+      researchFocus?: string;
+    }) => {
       const response = await apiRequest("POST", "/api/experts", expertData);
       return response.json();
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["/api/experts"] });
+      resetForm();
       setIsAddDialogOpen(false);
-      setNewExpertName("");
-      setNewExpertRole("");
       toast({
         title: "専門家を追加しました",
         description: "新しい専門家が追加されました。",
@@ -42,6 +58,18 @@ export default function ExpertConfig() {
       });
     },
   });
+
+  const resetForm = () => {
+    setNewExpertName("");
+    setNewExpertRole("");
+    setNewSpecialization("");
+    setNewSubSpecializations([]);
+    setNewInformationSources([]);
+    setNewExpertiseLevel("expert");
+    setNewResearchFocus("");
+    setCurrentSubSpec("");
+    setCurrentInfoSource("");
+  };
 
   const deleteExpertMutation = useMutation({
     mutationFn: async (expertId: string) => {
@@ -63,11 +91,33 @@ export default function ExpertConfig() {
     },
   });
 
+  const addSubSpecialization = () => {
+    if (currentSubSpec.trim() && !newSubSpecializations.includes(currentSubSpec.trim())) {
+      setNewSubSpecializations([...newSubSpecializations, currentSubSpec.trim()]);
+      setCurrentSubSpec("");
+    }
+  };
+
+  const removeSubSpecialization = (index: number) => {
+    setNewSubSpecializations(newSubSpecializations.filter((_, i) => i !== index));
+  };
+
+  const addInformationSource = () => {
+    if (currentInfoSource.trim() && !newInformationSources.includes(currentInfoSource.trim())) {
+      setNewInformationSources([...newInformationSources, currentInfoSource.trim()]);
+      setCurrentInfoSource("");
+    }
+  };
+
+  const removeInformationSource = (index: number) => {
+    setNewInformationSources(newInformationSources.filter((_, i) => i !== index));
+  };
+
   const handleAddExpert = () => {
-    if (!newExpertName.trim() || !newExpertRole.trim()) {
+    if (!newExpertName.trim() || !newExpertRole.trim() || !newSpecialization.trim()) {
       toast({
         title: "入力エラー",
-        description: "専門家名と役割を入力してください。",
+        description: "専門家名、役割、専門分野を入力してください。",
         variant: "destructive",
       });
       return;
@@ -76,7 +126,11 @@ export default function ExpertConfig() {
     addExpertMutation.mutate({
       name: newExpertName.trim(),
       role: newExpertRole.trim(),
-      specialization: newExpertRole.trim(),
+      specialization: newSpecialization.trim(),
+      subSpecializations: newSubSpecializations,
+      informationSources: newInformationSources,
+      expertiseLevel: newExpertiseLevel,
+      researchFocus: newResearchFocus.trim(),
     });
   };
 
@@ -147,7 +201,7 @@ export default function ExpertConfig() {
             <DialogTitle data-testid="text-dialog-title">新しい専門家を追加</DialogTitle>
           </DialogHeader>
           
-          <div className="space-y-4">
+          <div className="space-y-6 max-h-96 overflow-y-auto">
             <div>
               <label className="text-sm font-medium text-foreground">専門家名</label>
               <Input
@@ -160,14 +214,137 @@ export default function ExpertConfig() {
             </div>
             
             <div>
-              <label className="text-sm font-medium text-foreground">役割・専門分野</label>
+              <label className="text-sm font-medium text-foreground">役割</label>
               <Textarea
                 value={newExpertRole}
                 onChange={(e) => setNewExpertRole(e.target.value)}
-                placeholder="例：デジタルマーケティング、ブランド戦略、顧客体験"
+                placeholder="例：デジタルマーケティングの戦略立案と実行支援を行う"
                 className="mt-1 resize-none"
-                rows={3}
+                rows={2}
                 data-testid="input-expert-role"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">主要専門分野</label>
+              <Input
+                value={newSpecialization}
+                onChange={(e) => setNewSpecialization(e.target.value)}
+                placeholder="例：デジタルマーケティング"
+                className="mt-1"
+                data-testid="input-specialization"
+              />
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">専門性レベル</label>
+              <Select value={newExpertiseLevel} onValueChange={setNewExpertiseLevel}>
+                <SelectTrigger className="mt-1" data-testid="select-expertise-level">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="specialist">スペシャリスト</SelectItem>
+                  <SelectItem value="expert">エキスパート</SelectItem>
+                  <SelectItem value="senior">シニアエキスパート</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">詳細専門領域</label>
+              <div className="mt-1 space-y-2">
+                <div className="flex space-x-2">
+                  <Input
+                    value={currentSubSpec}
+                    onChange={(e) => setCurrentSubSpec(e.target.value)}
+                    placeholder="例：SEO・コンテンツマーケティング"
+                    data-testid="input-sub-specialization"
+                    onKeyPress={(e) => e.key === 'Enter' && addSubSpecialization()}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addSubSpecialization}
+                    data-testid="button-add-sub-spec"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {newSubSpecializations.map((spec, index) => (
+                    <Badge
+                      key={index}
+                      variant="secondary"
+                      className="text-xs"
+                      data-testid={`badge-sub-spec-${index}`}
+                    >
+                      {spec}
+                      <button
+                        className="ml-1 hover:text-destructive"
+                        onClick={() => removeSubSpecialization(index)}
+                        data-testid={`button-remove-sub-spec-${index}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">情報源</label>
+              <div className="mt-1 space-y-2">
+                <div className="flex space-x-2">
+                  <Input
+                    value={currentInfoSource}
+                    onChange={(e) => setCurrentInfoSource(e.target.value)}
+                    placeholder="例：学術論文、業界レポート、専門メディア"
+                    data-testid="input-info-source"
+                    onKeyPress={(e) => e.key === 'Enter' && addInformationSource()}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={addInformationSource}
+                    data-testid="button-add-info-source"
+                  >
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {newInformationSources.map((source, index) => (
+                    <Badge
+                      key={index}
+                      variant="outline"
+                      className="text-xs"
+                      data-testid={`badge-info-source-${index}`}
+                    >
+                      {source}
+                      <button
+                        className="ml-1 hover:text-destructive"
+                        onClick={() => removeInformationSource(index)}
+                        data-testid={`button-remove-info-source-${index}`}
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-foreground">研究焦点（オプション）</label>
+              <Textarea
+                value={newResearchFocus}
+                onChange={(e) => setNewResearchFocus(e.target.value)}
+                placeholder="例：持続可能なマーケティング戦略の研究・実装"
+                className="mt-1 resize-none"
+                rows={2}
+                data-testid="input-research-focus"
               />
             </div>
           </div>

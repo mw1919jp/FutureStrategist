@@ -1,5 +1,8 @@
-import { type Expert, type InsertExpert, type Scenario, type InsertScenario, type Analysis, type InsertAnalysis } from "@shared/schema";
+import { type Expert, type InsertExpert, type Scenario, type InsertScenario, type Analysis, type InsertAnalysis, experts, scenarios, analyses } from "@shared/schema";
 import { randomUUID } from "crypto";
+import { neon } from "@neondatabase/serverless";
+import { drizzle } from "drizzle-orm/neon-http";
+import { eq } from "drizzle-orm";
 
 export interface IStorage {
   // Experts
@@ -19,123 +22,106 @@ export interface IStorage {
   getAnalysesByScenario(scenarioId: string): Promise<Analysis[]>;
 }
 
-export class MemStorage implements IStorage {
-  private experts: Map<string, Expert>;
-  private scenarios: Map<string, Scenario>;
-  private analyses: Map<string, Analysis>;
+const sql = neon(process.env.DATABASE_URL!);
+const db = drizzle(sql);
 
+export class PostgreSQLStorage implements IStorage {
   constructor() {
-    this.experts = new Map();
-    this.scenarios = new Map();
-    this.analyses = new Map();
+    // Initialize with default experts if they don't exist
+    this.initializeDefaultExperts();
+  }
 
-    // Initialize with default experts
-    const defaultExperts = [
-      {
-        id: randomUUID(),
-        name: "環境・自然学者",
-        role: "環境科学、気候変動、持続可能性の専門家",
-        specialization: "環境科学、気候変動、持続可能性",
-        createdAt: new Date(),
-      },
-      {
-        id: randomUUID(),
-        name: "AI専門家",
-        role: "機械学習、データサイエンス、自動化技術の専門家",
-        specialization: "機械学習、データサイエンス、自動化技術",
-        createdAt: new Date(),
-      },
-      {
-        id: randomUUID(),
-        name: "経済学者",
-        role: "マクロ経済、金融市場、経済予測の専門家",
-        specialization: "マクロ経済、金融市場、経済予測",
-        createdAt: new Date(),
+  private async initializeDefaultExperts() {
+    try {
+      const existingExperts = await db.select().from(experts);
+      if (existingExperts.length === 0) {
+        const defaultExperts = [
+          {
+            name: "環境・自然学者",
+            role: "環境科学、気候変動、持続可能性の専門家",
+            specialization: "環境科学、気候変動、持続可能性",
+          },
+          {
+            name: "AI専門家",
+            role: "機械学習、データサイエンス、自動化技術の専門家",
+            specialization: "機械学習、データサイエンス、自動化技術",
+          },
+          {
+            name: "経済学者",
+            role: "マクロ経済、金融市場、経済予測の専門家",
+            specialization: "マクロ経済、金融市場、経済予測",
+          }
+        ];
+
+        await db.insert(experts).values(defaultExperts);
       }
-    ];
-
-    defaultExperts.forEach(expert => this.experts.set(expert.id, expert));
+    } catch (error) {
+      console.error("Failed to initialize default experts:", error);
+    }
   }
 
   async createExpert(insertExpert: InsertExpert): Promise<Expert> {
-    const id = randomUUID();
-    const expert: Expert = {
-      ...insertExpert,
-      id,
-      createdAt: new Date(),
-    };
-    this.experts.set(id, expert);
+    const [expert] = await db.insert(experts).values(insertExpert).returning();
     return expert;
   }
 
   async getExperts(): Promise<Expert[]> {
-    return Array.from(this.experts.values());
+    return await db.select().from(experts);
   }
 
   async deleteExpert(id: string): Promise<boolean> {
-    return this.experts.delete(id);
+    const result = await db.delete(experts).where(eq(experts.id, id));
+    return result.rowCount !== undefined && result.rowCount > 0;
   }
 
   async createScenario(insertScenario: InsertScenario): Promise<Scenario> {
-    const id = randomUUID();
-    const scenario: Scenario = {
+    const scenarioData = {
       ...insertScenario,
-      id,
       agentCount: insertScenario.agentCount || "3",
       episodeCount: insertScenario.episodeCount || "20",
-      createdAt: new Date(),
     };
-    this.scenarios.set(id, scenario);
+    const [scenario] = await db.insert(scenarios).values(scenarioData).returning();
     return scenario;
   }
 
   async getScenario(id: string): Promise<Scenario | undefined> {
-    return this.scenarios.get(id);
+    const [scenario] = await db.select().from(scenarios).where(eq(scenarios.id, id));
+    return scenario;
   }
 
   async getScenarios(): Promise<Scenario[]> {
-    return Array.from(this.scenarios.values());
+    return await db.select().from(scenarios);
   }
 
   async createAnalysis(insertAnalysis: InsertAnalysis): Promise<Analysis> {
-    const id = randomUUID();
-    const analysis: Analysis = {
+    const analysisData = {
       ...insertAnalysis,
-      id,
       status: insertAnalysis.status || "pending",
       progress: insertAnalysis.progress || "0",
       currentPhase: insertAnalysis.currentPhase || "1",
       results: insertAnalysis.results || null,
       markdownReport: insertAnalysis.markdownReport || null,
-      createdAt: new Date(),
-      updatedAt: new Date(),
     };
-    this.analyses.set(id, analysis);
+    const [analysis] = await db.insert(analyses).values(analysisData).returning();
     return analysis;
   }
 
   async getAnalysis(id: string): Promise<Analysis | undefined> {
-    return this.analyses.get(id);
+    const [analysis] = await db.select().from(analyses).where(eq(analyses.id, id));
+    return analysis;
   }
 
   async updateAnalysis(id: string, updates: Partial<Analysis>): Promise<Analysis | undefined> {
-    const existing = this.analyses.get(id);
-    if (!existing) return undefined;
-    
-    const updated = {
-      ...existing,
-      ...updates,
-      updatedAt: new Date(),
-    };
-    this.analyses.set(id, updated);
-    return updated;
+    const [analysis] = await db.update(analyses)
+      .set({ ...updates, updatedAt: new Date() })
+      .where(eq(analyses.id, id))
+      .returning();
+    return analysis;
   }
 
   async getAnalysesByScenario(scenarioId: string): Promise<Analysis[]> {
-    return Array.from(this.analyses.values()).filter(
-      analysis => analysis.scenarioId === scenarioId
-    );
+    return await db.select().from(analyses).where(eq(analyses.scenarioId, scenarioId));
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new PostgreSQLStorage();

@@ -8,6 +8,10 @@ export const experts = pgTable("experts", {
   name: text("name").notNull(),
   role: text("role").notNull(),
   specialization: text("specialization").notNull(),
+  subSpecializations: jsonb("sub_specializations").default([]), // array of detailed specializations
+  informationSources: jsonb("information_sources").default([]), // array of preferred information sources
+  expertiseLevel: text("expertise_level").notNull().default("expert"), // expert, senior, specialist
+  researchFocus: text("research_focus").default(""), // specific research focus area
   createdAt: timestamp("created_at").defaultNow(),
 });
 
