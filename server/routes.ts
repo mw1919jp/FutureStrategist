@@ -3,8 +3,13 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertExpertSchema, insertScenarioSchema } from "@shared/schema";
 import { openAIService } from "./services/openai";
+import { registerSseRoute } from "./sse";
+import { logPhaseStart, logPhaseComplete } from "./utils/logger";
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Register SSE route for real-time analysis logs
+  registerSseRoute(app);
+
   // Expert routes
   app.get("/api/experts", async (req, res) => {
     try {
@@ -132,6 +137,8 @@ async function processAnalysis(analysisId: string, scenario: any) {
     });
 
     // Phase 1: Expert analysis
+    logPhaseStart(analysisId, 1, "専門家による専門分野の調査");
+    
     const experts = await storage.getExperts();
     const targetYear = (scenario.targetYears as number[])[0] || 2030;
     
@@ -142,10 +149,13 @@ async function processAnalysis(analysisId: string, scenario: any) {
         expert.role,
         scenario.theme,
         scenario.currentStrategy,
-        targetYear
+        targetYear,
+        analysisId
       );
       expertAnalyses.push(analysis);
     }
+    
+    logPhaseComplete(analysisId, 1, "専門家による専門分野の調査");
 
     // Update to phase 2
     await storage.updateAnalysis(analysisId, {
@@ -154,12 +164,17 @@ async function processAnalysis(analysisId: string, scenario: any) {
     });
 
     // Phase 2: Scenario generation
+    logPhaseStart(analysisId, 2, "シナリオ生成");
+    
     const scenarioContent = await openAIService.generateScenario(
       scenario.theme,
       scenario.currentStrategy,
       targetYear,
-      expertAnalyses
+      expertAnalyses,
+      analysisId
     );
+    
+    logPhaseComplete(analysisId, 2, "シナリオ生成");
 
     // Update to phase 3
     await storage.updateAnalysis(analysisId, {
@@ -168,12 +183,17 @@ async function processAnalysis(analysisId: string, scenario: any) {
     });
 
     // Phase 3: Long-term perspective (2060 year view)
+    logPhaseStart(analysisId, 3, "超長期（2060年）からの戦略の見直し");
+    
     const longTermPerspective = await openAIService.generateLongTermPerspective(
       scenario.theme,
       scenario.currentStrategy,
       2060,
-      targetYear
+      targetYear,
+      analysisId
     );
+    
+    logPhaseComplete(analysisId, 3, "超長期（2060年）からの戦略の見直し");
 
     // Update to phase 4
     await storage.updateAnalysis(analysisId, {
@@ -182,12 +202,17 @@ async function processAnalysis(analysisId: string, scenario: any) {
     });
 
     // Phase 4: Strategic alignment evaluation
+    logPhaseStart(analysisId, 4, "戦略整合性評価");
+    
     const strategicAlignment = await openAIService.evaluateStrategicAlignment(
       scenario.theme,
       scenario.currentStrategy,
       targetYear,
-      [scenarioContent, longTermPerspective]
+      [scenarioContent, longTermPerspective],
+      analysisId
     );
+    
+    logPhaseComplete(analysisId, 4, "戦略整合性評価");
 
     // Update to phase 5
     await storage.updateAnalysis(analysisId, {
@@ -196,12 +221,17 @@ async function processAnalysis(analysisId: string, scenario: any) {
     });
 
     // Phase 5: Final simulation
+    logPhaseStart(analysisId, 5, "最終シナリオシミュレーション");
+    
     const finalSimulation = await openAIService.generateFinalSimulation(
       scenario.theme,
       scenario.currentStrategy,
       targetYear,
-      [scenarioContent, longTermPerspective, strategicAlignment]
+      [scenarioContent, longTermPerspective, strategicAlignment],
+      analysisId
     );
+    
+    logPhaseComplete(analysisId, 5, "最終シナリオシミュレーション");
 
     // Compile results
     const phases = [

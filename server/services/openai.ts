@@ -1,4 +1,5 @@
 import OpenAI from "openai";
+import { logApiRequest, logApiResponse } from "../utils/logger";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -31,7 +32,8 @@ export class OpenAIService {
     expertRole: string, 
     theme: string, 
     currentStrategy: string, 
-    targetYear: number
+    targetYear: number,
+    analysisId?: string
   ): Promise<ExpertAnalysis> {
     try {
       const prompt = `あなたは「${expertName}」として、以下の分析を行ってください。
@@ -52,13 +54,22 @@ JSON形式で以下の構造で回答してください:
   "recommendations": ["推奨事項1", "推奨事項2", "推奨事項3"]
 }`;
 
+      if (analysisId) {
+        logApiRequest(analysisId, 1, `専門家分析: ${expertName}`, prompt);
+      }
+      
       const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      const responseContent = response.choices[0].message.content || "{}";
+      if (analysisId) {
+        logApiResponse(analysisId, 1, `専門家分析: ${expertName}`, true, responseContent.length);
+      }
+
+      const result = JSON.parse(responseContent);
       
       return {
         expert: expertName,
@@ -67,6 +78,9 @@ JSON形式で以下の構造で回答してください:
       };
     } catch (error) {
       console.error("Expert analysis error:", error);
+      if (analysisId) {
+        logApiResponse(analysisId, 1, `専門家分析: ${expertName}`, false, 0, error instanceof Error ? error.message : '不明なエラー');
+      }
       return {
         expert: expertName,
         content: `${expertName}による分析中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`,
@@ -79,7 +93,8 @@ JSON形式で以下の構造で回答してください:
     theme: string,
     currentStrategy: string,
     targetYear: number,
-    expertAnalyses: ExpertAnalysis[]
+    expertAnalyses: ExpertAnalysis[],
+    analysisId?: string
   ): Promise<string> {
     try {
       const expertSummary = expertAnalyses.map(analysis => 
@@ -107,16 +122,28 @@ JSON形式で以下の構造で回答してください:
   "scenario": "詳細なシナリオ（800文字程度）"
 }`;
 
+      if (analysisId) {
+        logApiRequest(analysisId, 2, "シナリオ生成", prompt);
+      }
+      
       const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      const responseContent = response.choices[0].message.content || "{}";
+      if (analysisId) {
+        logApiResponse(analysisId, 2, "シナリオ生成", true, responseContent.length);
+      }
+
+      const result = JSON.parse(responseContent);
       return result.scenario || "シナリオの生成に失敗しました。";
     } catch (error) {
       console.error("Scenario generation error:", error);
+      if (analysisId) {
+        logApiResponse(analysisId, 2, "シナリオ生成", false, 0, error instanceof Error ? error.message : '不明なエラー');
+      }
       return `シナリオ生成中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`;
     }
   }
@@ -125,7 +152,8 @@ JSON形式で以下の構造で回答してください:
     theme: string,
     currentStrategy: string,
     longTermYear: number,
-    nearTermYear: number
+    nearTermYear: number,
+    analysisId?: string
   ): Promise<string> {
     try {
       const prompt = `${longTermYear}年の視点から${nearTermYear}年の戦略を評価し、超長期的な観点での提言を行ってください。
@@ -144,16 +172,28 @@ JSON形式で以下の構造で回答してください:
   "strategic_actions": ["戦略的アクション1", "戦略的アクション2", "戦略的アクション3"]
 }`;
 
+      if (analysisId) {
+        logApiRequest(analysisId, 3, "長期視点分析", prompt);
+      }
+      
       const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      const responseContent = response.choices[0].message.content || "{}";
+      if (analysisId) {
+        logApiResponse(analysisId, 3, "長期視点分析", true, responseContent.length);
+      }
+
+      const result = JSON.parse(responseContent);
       return result.perspective || "長期的視点の分析に失敗しました。";
     } catch (error) {
       console.error("Long-term perspective error:", error);
+      if (analysisId) {
+        logApiResponse(analysisId, 3, "長期視点分析", false, 0, error instanceof Error ? error.message : '不明なエラー');
+      }
       return `長期的視点の分析中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`;
     }
   }
@@ -162,7 +202,8 @@ JSON形式で以下の構造で回答してください:
     theme: string,
     currentStrategy: string,
     targetYear: number,
-    scenarios: string[]
+    scenarios: string[],
+    analysisId?: string
   ): Promise<string> {
     try {
       const scenarioSummary = scenarios.join('\n\n');
@@ -186,16 +227,28 @@ JSON形式で以下の構造で回答してください:
   "recommendations": ["推奨事項1", "推奨事項2", "推奨事項3"]
 }`;
 
+      if (analysisId) {
+        logApiRequest(analysisId, 4, "戦略整合性評価", prompt);
+      }
+      
       const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      const responseContent = response.choices[0].message.content || "{}";
+      if (analysisId) {
+        logApiResponse(analysisId, 4, "戦略整合性評価", true, responseContent.length);
+      }
+
+      const result = JSON.parse(responseContent);
       return JSON.stringify(result);
     } catch (error) {
       console.error("Strategic alignment evaluation error:", error);
+      if (analysisId) {
+        logApiResponse(analysisId, 4, "戦略整合性評価", false, 0, error instanceof Error ? error.message : '不明なエラー');
+      }
       return JSON.stringify({
         alignment_score: "評価不可",
         strengths: ["評価中にエラーが発生しました"],
@@ -209,7 +262,8 @@ JSON形式で以下の構造で回答してください:
     theme: string,
     currentStrategy: string,
     targetYear: number,
-    allAnalyses: string[]
+    allAnalyses: string[],
+    analysisId?: string
   ): Promise<string> {
     try {
       const analysisSummary = allAnalyses.join('\n\n');
@@ -233,16 +287,28 @@ JSON形式で以下の構造で回答してください:
   "implementation_steps": ["実装ステップ1", "実装ステップ2", "実装ステップ3"]
 }`;
 
+      if (analysisId) {
+        logApiRequest(analysisId, 5, "最終シミュレーション", prompt);
+      }
+      
       const response = await openai.chat.completions.create({
         model: "gpt-5",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
 
-      const result = JSON.parse(response.choices[0].message.content || "{}");
+      const responseContent = response.choices[0].message.content || "{}";
+      if (analysisId) {
+        logApiResponse(analysisId, 5, "最終シミュレーション", true, responseContent.length);
+      }
+
+      const result = JSON.parse(responseContent);
       return result.final_scenario || "最終シミュレーションの生成に失敗しました。";
     } catch (error) {
       console.error("Final simulation error:", error);
+      if (analysisId) {
+        logApiResponse(analysisId, 5, "最終シミュレーション", false, 0, error instanceof Error ? error.message : '不明なエラー');
+      }
       return `最終シミュレーション中にエラーが発生しました: ${error instanceof Error ? error.message : '不明なエラー'}`;
     }
   }
