@@ -59,3 +59,28 @@ export type Scenario = typeof scenarios.$inferSelect;
 export type InsertScenario = z.infer<typeof insertScenarioSchema>;
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
+
+// Analysis result types for multi-year support
+export interface ExpertAnalysis {
+  expert: string;
+  content: string;
+  recommendations: string[];
+}
+
+export interface PhaseResult {
+  phase: number;
+  title: string;
+  content: string;
+  analyses?: ExpertAnalysis[];
+  recommendations?: string[];
+}
+
+export interface YearResult {
+  year: number;
+  phases: PhaseResult[];
+}
+
+export interface AnalysisResults {
+  years: YearResult[];
+  phases?: PhaseResult[]; // Backward compatibility
+}
