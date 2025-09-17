@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import { logApiRequest, logApiResponse } from "../utils/logger";
+import type { YearResult } from "@shared/schema";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -377,6 +378,125 @@ JSON形式で以下の構造で回答してください:
 2. **中期的施策（3-5年）:** 新技術・新市場への適応準備
 3. **長期的施策（5年以上）:** 持続可能な競争優位の構築
 
+---
+
+*このレポートは AI 専門家エージェントシステムにより生成されました。*
+`;
+
+    return markdown;
+  }
+
+  generateMarkdownReportMultiYear(
+    theme: string,
+    currentStrategy: string,
+    targetYears: number[],
+    yearResults: YearResult[]
+  ): string {
+    const date = new Date().toISOString().split('T')[0];
+    
+    let markdown = `# 未来予測AIシナリオ分析レポート（複数年予測）
+
+**生成日:** ${date}
+**分析テーマ:** ${theme}
+**現在の経営戦略:** ${currentStrategy}
+**予測年:** ${targetYears.join(', ')}
+
+---
+
+## 📋 エグゼクティブサマリー
+
+本レポートは、AI専門家エージェントによる複数年にわたる未来予測分析の結果をまとめたものです。
+${targetYears.map(year => `${year}年`).join('、')}における未来シナリオを、段階的に分析しています。
+
+---
+
+## 📊 年別分析結果インデックス
+
+`;
+
+    yearResults.forEach(yearResult => {
+      markdown += `- [${yearResult.year}年の分析](#${yearResult.year}年の未来予測シナリオ)
+`;
+    });
+
+    markdown += `
+---
+
+`;
+
+    // Generate content for each year
+    yearResults.forEach((yearResult, yearIndex) => {
+      markdown += `## ${yearResult.year}年の未来予測シナリオ
+
+`;
+      
+      yearResult.phases.forEach((phase, phaseIndex) => {
+        markdown += `### Phase ${phaseIndex + 1}: ${phase.title}
+
+`;
+        markdown += `${phase.content}
+
+`;
+
+        if (phase.analyses && phase.analyses.length > 0) {
+          markdown += `#### 専門家分析
+
+`;
+          phase.analyses.forEach(analysis => {
+            markdown += `##### ${analysis.expert}
+
+`;
+            markdown += `${analysis.content}
+
+`;
+            if (analysis.recommendations.length > 0) {
+              markdown += `**推奨事項:**
+`;
+              analysis.recommendations.forEach(rec => {
+                markdown += `- ${rec}
+`;
+              });
+              markdown += `
+`;
+            }
+          });
+        }
+
+        if (phase.recommendations && phase.recommendations.length > 0) {
+          markdown += `#### 主要推奨事項
+
+`;
+          phase.recommendations.forEach(rec => {
+            markdown += `- ${rec}
+`;
+          });
+          markdown += `
+`;
+        }
+      });
+
+      if (yearIndex < yearResults.length - 1) {
+        markdown += `---
+
+`;
+      }
+    });
+
+    markdown += `---
+
+## 🎯 複数年総合提言
+
+この複数年分析に基づき、以下の段階的戦略アプローチを推奨します：
+
+`;
+
+    targetYears.forEach((year, index) => {
+      const timeframe = index === 0 ? '短期的施策' : index === 1 ? '中期的施策' : '長期的施策';
+      markdown += `${index + 1}. **${timeframe}（${year}年目標）:** 段階的な戦略展開と適応
+`;
+    });
+
+    markdown += `
 ---
 
 *このレポートは AI 専門家エージェントシステムにより生成されました。*
