@@ -44,6 +44,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
     }
   });
 
+  // Expert prediction route
+  app.post("/api/experts/predict", async (req, res) => {
+    try {
+      const { name } = req.body;
+      
+      if (!name || typeof name !== "string" || name.trim().length < 2) {
+        return res.status(400).json({ message: "Valid expert name is required (minimum 2 characters)" });
+      }
+
+      const prediction = await openAIService.predictExpertInfo(name.trim());
+      res.json(prediction);
+    } catch (error) {
+      console.error("Expert prediction error:", error);
+      res.status(500).json({ message: "Failed to predict expert information" });
+    }
+  });
+
   // Scenario routes
   app.post("/api/scenarios", async (req, res) => {
     try {
