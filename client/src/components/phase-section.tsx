@@ -102,19 +102,19 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
               {phase.analyses.map((analysis, index) => (
                 <div 
                   key={index}
-                  className="bg-primary/5 border border-primary/20 rounded-lg p-4"
+                  className="bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700 rounded-lg p-4"
                   data-testid={`analysis-card-${phaseNumber}-${index}`}
                 >
                   <h4 className="font-medium text-primary mb-2" data-testid={`text-expert-name-${phaseNumber}-${index}`}>
                     🧠 {analysis.expert}
                   </h4>
-                  <p className="text-sm text-foreground leading-relaxed" data-testid={`text-expert-analysis-${phaseNumber}-${index}`}>
+                  <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed" data-testid={`text-expert-analysis-${phaseNumber}-${index}`}>
                     {analysis.content}
                   </p>
                   {analysis.recommendations && analysis.recommendations.length > 0 && (
                     <div className="mt-3">
                       <h5 className="text-xs font-medium text-primary mb-1">推奨事項:</h5>
-                      <ul className="text-xs text-foreground space-y-1">
+                      <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
                         {analysis.recommendations.map((rec, recIndex) => (
                           <li key={recIndex} data-testid={`text-recommendation-${phaseNumber}-${index}-${recIndex}`}>
                             • {rec}
