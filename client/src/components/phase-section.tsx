@@ -73,16 +73,16 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
           {icon} Phase{phaseNumber}: {phase.title}
         </h3>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={handleToggle}
-          className="ml-auto"
+          className="ml-auto border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700"
           data-testid={`button-toggle-phase-${phaseNumber}`}
         >
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4" />
+            <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           ) : (
-            <ChevronDown className="h-4 w-4" />
+            <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
           )}
         </Button>
       </div>
