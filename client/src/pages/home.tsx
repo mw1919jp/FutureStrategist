@@ -77,7 +77,7 @@ export default function Home() {
         {/* Header Bar */}
         <header className="bg-white dark:bg-card border-b border-border px-6 py-4 flex items-center justify-between">
           <div className="flex items-center space-x-4">
-            <h1 className="text-xl font-bold text-foreground" data-testid="page-title">
+            <h1 className="text-xl font-bold text-gray-900 dark:text-gray-100" data-testid="page-title">
               未来予測AI シナリオシミュレーション
             </h1>
           </div>
@@ -134,10 +134,10 @@ export default function Home() {
                 <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
                   <Play className="h-8 w-8 text-primary" />
                 </div>
-                <h2 className="text-lg font-semibold text-foreground" data-testid="text-welcome">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100" data-testid="text-welcome">
                   未来予測分析の開始
                 </h2>
-                <p className="text-muted-foreground max-w-md" data-testid="text-instructions">
+                <p className="text-gray-600 dark:text-gray-400 max-w-md" data-testid="text-instructions">
                   左側のパネルで専門家とシナリオ条件を設定し、「分析開始」ボタンをクリックしてください。
                 </p>
               </div>
