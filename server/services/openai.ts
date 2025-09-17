@@ -85,15 +85,19 @@ export class OpenAIService {
       };
     } catch (error) {
       console.error("Expert prediction error:", error);
-      // Return default values on error
-      return {
-        role: "",
-        specialization: "",
-        expertiseLevel: "expert",
-        subSpecializations: [],
-        informationSources: [],
-        researchFocus: "",
-      };
+      
+      // Determine error type and throw appropriate error
+      if (error instanceof Error) {
+        if (error.message.includes('quota') || error.message.includes('429')) {
+          throw new Error('QUOTA_EXCEEDED');
+        } else if (error.message.includes('auth') || error.message.includes('401')) {
+          throw new Error('AUTH_FAILED');
+        } else if (error.message.includes('network') || error.message.includes('timeout')) {
+          throw new Error('NETWORK_ERROR');
+        }
+      }
+      
+      throw new Error('SERVICE_ERROR');
     }
   }
 

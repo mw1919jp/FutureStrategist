@@ -49,15 +49,60 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       const { name } = req.body;
       
-      if (!name || typeof name !== "string" || name.trim().length < 2) {
-        return res.status(400).json({ message: "Valid expert name is required (minimum 2 characters)" });
+      if (!name || typeof name !== "string" || name.trim().length < 3) {
+        return res.status(400).json({ message: "Valid expert name is required (minimum 3 characters)" });
       }
 
       const prediction = await openAIService.predictExpertInfo(name.trim());
+      
+      // Check if prediction contains actual content (not just empty defaults)
+      const hasContent = prediction.role?.trim() || 
+                        prediction.specialization?.trim() || 
+                        (prediction.subSpecializations && prediction.subSpecializations.length > 0) ||
+                        (prediction.informationSources && prediction.informationSources.length > 0) ||
+                        prediction.researchFocus?.trim();
+      
+      if (!hasContent) {
+        return res.status(503).json({ 
+          message: "No information available for this expert. Please try a different name or add information manually.",
+          code: "NO_CONTENT"
+        });
+      }
+      
       res.json(prediction);
     } catch (error) {
       console.error("Expert prediction error:", error);
-      res.status(500).json({ message: "Failed to predict expert information" });
+      
+      // Handle specific error types
+      if (error instanceof Error) {
+        switch (error.message) {
+          case 'QUOTA_EXCEEDED':
+            return res.status(429).json({ 
+              message: "API quota exceeded. Please try again later.",
+              code: "QUOTA_EXCEEDED"
+            });
+          case 'AUTH_FAILED':
+            return res.status(401).json({ 
+              message: "Authentication failed. Please check API configuration.",
+              code: "AUTH_FAILED"
+            });
+          case 'NETWORK_ERROR':
+            return res.status(503).json({ 
+              message: "Network error. Please check your connection and try again.",
+              code: "NETWORK_ERROR"
+            });
+          default:
+            return res.status(503).json({ 
+              message: "Service temporarily unavailable. Please try again later.",
+              code: "SERVICE_ERROR"
+            });
+        }
+      }
+      
+      res.status(503).json({ 
+        message: "Service temporarily unavailable. Please try again later.",
+        code: "UNKNOWN_ERROR"
+      });
     }
   });
 

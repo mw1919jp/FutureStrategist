@@ -24,6 +24,7 @@ export default function ExpertConfig() {
   const [currentInfoSource, setCurrentInfoSource] = useState("");
   const [isLoadingPrediction, setIsLoadingPrediction] = useState(false);
   const [hasAppliedPrediction, setHasAppliedPrediction] = useState(false);
+  const [currentRequestId, setCurrentRequestId] = useState<string | null>(null);
   const { toast } = useToast();
 
   const { data: experts = [], isLoading } = useQuery<Expert[]>({
@@ -73,6 +74,7 @@ export default function ExpertConfig() {
     setCurrentInfoSource("");
     setHasAppliedPrediction(false);
     setIsLoadingPrediction(false);
+    setCurrentRequestId(null);
   };
 
 
@@ -97,11 +99,36 @@ export default function ExpertConfig() {
   });
 
   const predictExpertInfoMutation = useMutation({
-    mutationFn: async (name: string) => {
+    mutationFn: async ({ name, requestId }: { name: string; requestId: string }) => {
       const response = await apiRequest("POST", "/api/experts/predict", { name });
-      return response.json();
+      const data = await response.json();
+      return { data, requestId, status: response.status };
     },
-    onSuccess: (data) => {
+    onSuccess: ({ data, requestId, status }) => {
+      // Check if this response is still relevant (no race condition)
+      if (requestId !== currentRequestId) {
+        console.log('Ignoring stale response for request:', requestId);
+        return;
+      }
+      
+      // Check if prediction contains actual content
+      const hasContent = data.role?.trim() || 
+                        data.specialization?.trim() || 
+                        (data.subSpecializations && data.subSpecializations.length > 0) ||
+                        (data.informationSources && data.informationSources.length > 0) ||
+                        data.researchFocus?.trim();
+      
+      if (!hasContent && status === 200) {
+        // This shouldn't happen with the backend fix, but just in case
+        setIsLoadingPrediction(false);
+        toast({
+          title: "情報が見つかりませんでした",
+          description: "この専門家の情報を取得できませんでした。別の名前を試すか、手動で入力してください。",
+          variant: "destructive",
+        });
+        return;
+      }
+      
       setNewExpertRole(data.role || "");
       setNewSpecialization(data.specialization || "");
       setNewExpertiseLevel(data.expertiseLevel || "expert");
@@ -110,26 +137,71 @@ export default function ExpertConfig() {
       setNewResearchFocus(data.researchFocus || "");
       setHasAppliedPrediction(true);
       setIsLoadingPrediction(false);
+      setCurrentRequestId(null);
+      
       toast({
         title: "情報を自動設定しました",
         description: "AI が専門家情報を予測して設定しました。必要に応じて編集してください。",
       });
     },
-    onError: () => {
+    onError: (error: any, variables) => {
+      // Check if this response is still relevant
+      if (variables.requestId !== currentRequestId) {
+        console.log('Ignoring stale error for request:', variables.requestId);
+        return;
+      }
+      
       setIsLoadingPrediction(false);
+      setCurrentRequestId(null);
+      
+      // Handle specific error responses from backend
+      let title = "予測に失敗しました";
+      let description = "専門家情報の自動設定ができませんでした。手動で入力してください。";
+      
+      if (error?.response?.status) {
+        const status = error.response.status;
+        const errorData = error.response.data;
+        
+        switch (status) {
+          case 429:
+            title = "API制限に達しました";
+            description = "しばらく時間をおいてから再度お試しください。";
+            break;
+          case 401:
+            title = "認証エラー";
+            description = "API設定に問題があります。管理者にお問い合わせください。";
+            break;
+          case 503:
+            if (errorData?.code === 'NO_CONTENT') {
+              title = "情報が見つかりませんでした";
+              description = "この専門家の情報を取得できませんでした。別の名前を試すか、手動で入力してください。";
+            } else {
+              title = "サービス一時停止中";
+              description = "サービスが一時的に利用できません。しばらく時間をおいてから再度お試しください。";
+            }
+            break;
+          case 400:
+            title = "入力エラー";
+            description = "専門家名は3文字以上で入力してください。";
+            break;
+        }
+      }
+      
       toast({
-        title: "予測に失敗しました",
-        description: "専門家情報の自動設定ができませんでした。手動で入力してください。",
+        title,
+        description,
         variant: "destructive",
       });
     },
   });
 
-  // Debounced expert name prediction
+  // Debounced expert name prediction with race condition protection
   const debouncedPredict = useCallback((name: string) => {
     if (name.trim().length >= 3 && !hasAppliedPrediction) {
+      const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      setCurrentRequestId(requestId);
       setIsLoadingPrediction(true);
-      predictExpertInfoMutation.mutate(name.trim());
+      predictExpertInfoMutation.mutate({ name: name.trim(), requestId });
     }
   }, [hasAppliedPrediction, predictExpertInfoMutation]);
 
@@ -149,6 +221,8 @@ export default function ExpertConfig() {
     // Reset prediction state if user clears or significantly modifies the name
     if (name.trim().length === 0) {
       setHasAppliedPrediction(false);
+      setIsLoadingPrediction(false);
+      setCurrentRequestId(null);
       setNewExpertRole("");
       setNewSpecialization("");
       setNewSubSpecializations([]);
@@ -273,13 +347,13 @@ export default function ExpertConfig() {
               <div className="flex items-center space-x-2 mb-2">
                 <label className="text-sm font-medium text-foreground">専門家名</label>
                 {isLoadingPrediction && (
-                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground" data-testid="indicator-prediction-loading">
                     <Loader2 className="h-3 w-3 animate-spin" />
                     <span>AI予測中...</span>
                   </div>
                 )}
                 {hasAppliedPrediction && !isLoadingPrediction && (
-                  <div className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400">
+                  <div className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400" data-testid="indicator-prediction-success">
                     <Sparkles className="h-3 w-3" />
                     <span>AI予測完了</span>
                   </div>
