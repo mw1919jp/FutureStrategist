@@ -7,6 +7,38 @@ const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key" 
 });
 
+// Ultra-fast OpenAI client specifically for expert prediction with no retries and 1.8s timeout
+const fastOpenai = new OpenAI({
+  apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key",
+  maxRetries: 0,
+  timeout: 1800, // 1.8 second timeout to guarantee <2s total response
+});
+
+// In-memory cache for expert predictions with TTL
+interface CacheEntry {
+  data: ExpertPrediction;
+  timestamp: number;
+  ttl: number;
+}
+
+// Circuit breaker state management
+interface CircuitBreakerState {
+  failureCount: number;
+  lastFailureTime: number;
+  isOpen: boolean;
+}
+
+const predictionCache = new Map<string, CacheEntry>();
+const inflightRequests = new Map<string, Promise<ExpertPrediction>>();
+const circuitBreaker = new Map<string, CircuitBreakerState>();
+
+// Cache TTL: 15 minutes
+const CACHE_TTL = 15 * 60 * 1000;
+// Circuit breaker timeout: 10 seconds
+const CIRCUIT_BREAKER_TIMEOUT = 10 * 1000;
+// Hard deadline for total response: 2 seconds
+const HARD_DEADLINE = 2000;
+
 export interface ExpertAnalysis {
   expert: string;
   content: string;
@@ -36,14 +68,229 @@ export interface ExpertPrediction {
   researchFocus: string;
 }
 
+// Template-based fallback responses for common expert types
+const expertFallbackTemplates: Record<string, ExpertPrediction> = {
+  "AI研究者": {
+    role: "人工知能研究・開発専門家",
+    specialization: "機械学習・深層学習",
+    expertiseLevel: "expert",
+    subSpecializations: ["自然言語処理", "コンピュータビジョン", "強化学習"],
+    informationSources: ["学術論文", "技術カンファレンス"],
+    researchFocus: "AI技術の実用化と倫理的課題"
+  },
+  "経営コンサルタント": {
+    role: "企業戦略・経営改善専門家",
+    specialization: "経営戦略・組織変革",
+    expertiseLevel: "senior",
+    subSpecializations: ["デジタル変革", "事業再編", "組織開発"],
+    informationSources: ["市場調査", "業界レポート"],
+    researchFocus: "持続的競争優位の構築"
+  },
+  "経済学者": {
+    role: "経済分析・政策研究専門家",
+    specialization: "マクロ経済・金融政策",
+    expertiseLevel: "expert",
+    subSpecializations: ["金融市場", "国際経済", "労働経済"],
+    informationSources: ["統計データ", "政府報告書"],
+    researchFocus: "経済動向と政策効果の分析"
+  },
+  "技術者": {
+    role: "技術開発・システム設計専門家",
+    specialization: "ソフトウェア・システム開発",
+    expertiseLevel: "expert",
+    subSpecializations: ["クラウド技術", "データベース", "セキュリティ"],
+    informationSources: ["技術文書", "開発コミュニティ"],
+    researchFocus: "技術革新と実装効率の向上"
+  },
+  "マーケティング専門家": {
+    role: "市場分析・顧客戦略専門家",
+    specialization: "デジタルマーケティング",
+    expertiseLevel: "expert",
+    subSpecializations: ["ソーシャルメディア", "データ分析", "ブランド戦略"],
+    informationSources: ["消費者調査", "市場データ"],
+    researchFocus: "顧客体験の最適化と収益向上"
+  }
+};
+
 export class OpenAIService {
+  // Cache management methods
+  private getCachedPrediction(expertName: string): ExpertPrediction | null {
+    const entry = predictionCache.get(expertName);
+    if (!entry) return null;
+    
+    const now = Date.now();
+    if (now - entry.timestamp > entry.ttl) {
+      predictionCache.delete(expertName);
+      return null;
+    }
+    
+    console.log(`[ExpertPrediction] Cache hit for ${expertName}`);
+    return entry.data;
+  }
+
+  private cachePrediction(expertName: string, prediction: ExpertPrediction): void {
+    predictionCache.set(expertName, {
+      data: prediction,
+      timestamp: Date.now(),
+      ttl: CACHE_TTL
+    });
+  }
+
+  // Circuit breaker management
+  private shouldBreakCircuit(expertName: string): boolean {
+    const state = circuitBreaker.get(expertName);
+    if (!state) return false;
+    
+    const now = Date.now();
+    if (state.isOpen && (now - state.lastFailureTime) > CIRCUIT_BREAKER_TIMEOUT) {
+      // Reset circuit breaker after timeout
+      circuitBreaker.delete(expertName);
+      console.log(`[ExpertPrediction] Circuit breaker reset for ${expertName}`);
+      return false;
+    }
+    
+    if (state.isOpen) {
+      console.log(`[ExpertPrediction] Circuit breaker open for ${expertName}, using fallback`);
+      return true;
+    }
+    
+    return false;
+  }
+
+  private recordCircuitBreakerFailure(expertName: string, error: any): void {
+    const now = Date.now();
+    const state = circuitBreaker.get(expertName) || { failureCount: 0, lastFailureTime: 0, isOpen: false };
+    
+    // Check for known failure conditions
+    const isKnownFailure = 
+      error.code === 'insufficient_quota' ||
+      error.status === 429 ||
+      error.code === 'ETIMEDOUT' ||
+      error.message?.includes('Request timed out') ||
+      error.message?.includes('timeout');
+    
+    if (isKnownFailure) {
+      state.failureCount += 1;
+      state.lastFailureTime = now;
+      state.isOpen = state.failureCount >= 2; // Open circuit after 2 failures
+      
+      circuitBreaker.set(expertName, state);
+      console.log(`[ExpertPrediction] Circuit breaker failure recorded for ${expertName}. Count: ${state.failureCount}, Open: ${state.isOpen}`);
+    }
+  }
+
+  private getFallbackPrediction(expertName: string): ExpertPrediction {
+    // Check for exact matches first
+    const exactMatch = expertFallbackTemplates[expertName];
+    if (exactMatch) {
+      return exactMatch;
+    }
+
+    // Check for partial matches in expert name
+    for (const [templateKey, template] of Object.entries(expertFallbackTemplates)) {
+      if (expertName.includes(templateKey) || templateKey.includes(expertName)) {
+        return {
+          ...template,
+          role: `${expertName} - ${template.role}`
+        };
+      }
+    }
+
+    // Generic fallback
+    return {
+      role: `${expertName} - 専門分野の専門家`,
+      specialization: "専門分野",
+      expertiseLevel: "expert",
+      subSpecializations: ["専門領域1", "専門領域2", "専門領域3"],
+      informationSources: ["専門文献", "業界情報"],
+      researchFocus: "分野の発展と実用化"
+    };
+  }
+
   async predictExpertInfo(expertName: string): Promise<ExpertPrediction> {
+    const startTime = Date.now();
+    
+    console.log(`[ExpertPrediction] Request started for: ${expertName}`);
+
+    // 1. Check cache first (fastest path)
+    const cached = this.getCachedPrediction(expertName);
+    if (cached) {
+      const elapsedTime = Date.now() - startTime;
+      console.log(`[ExpertPrediction] Cache hit for ${expertName} in ${elapsedTime}ms`);
+      return cached;
+    }
+
+    // 2. Check inflight deduplication
+    const existingRequest = inflightRequests.get(expertName);
+    if (existingRequest) {
+      console.log(`[ExpertPrediction] Joining inflight request for ${expertName}`);
+      try {
+        const result = await existingRequest;
+        const elapsedTime = Date.now() - startTime;
+        console.log(`[ExpertPrediction] Inflight request completed for ${expertName} in ${elapsedTime}ms`);
+        return result;
+      } catch (error) {
+        // If inflight request failed, continue with new request
+        console.log(`[ExpertPrediction] Inflight request failed for ${expertName}, trying new request`);
+      }
+    }
+
+    // 3. Check circuit breaker (fast-fail on known failures)
+    if (this.shouldBreakCircuit(expertName)) {
+      const fallbackResult = this.getFallbackPrediction(expertName);
+      this.cachePrediction(expertName, fallbackResult);
+      const elapsedTime = Date.now() - startTime;
+      console.log(`[ExpertPrediction] Circuit breaker fallback for ${expertName} in ${elapsedTime}ms`);
+      return fallbackResult;
+    }
+
+    // 4. Create new API request with hard deadline enforcement
+    const requestPromise = this.makeApiRequestWithDeadline(expertName, startTime);
+    inflightRequests.set(expertName, requestPromise);
+
+    try {
+      const result = await requestPromise;
+      
+      // Success: cache result and clear inflight
+      this.cachePrediction(expertName, result);
+      inflightRequests.delete(expertName);
+      
+      const elapsedTime = Date.now() - startTime;
+      console.log(`[ExpertPrediction] API success for ${expertName} in ${elapsedTime}ms`);
+      return result;
+      
+    } catch (error) {
+      // Failure: record in circuit breaker, clear inflight, return fallback
+      this.recordCircuitBreakerFailure(expertName, error);
+      inflightRequests.delete(expertName);
+      
+      const fallbackResult = this.getFallbackPrediction(expertName);
+      this.cachePrediction(expertName, fallbackResult);
+      
+      const elapsedTime = Date.now() - startTime;
+      console.log(`[ExpertPrediction] API error for ${expertName} after ${elapsedTime}ms, using fallback`);
+      return fallbackResult;
+    }
+  }
+
+  private async makeApiRequestWithDeadline(expertName: string, requestStartTime: number): Promise<ExpertPrediction> {
+    const remainingTime = HARD_DEADLINE - (Date.now() - requestStartTime);
+    if (remainingTime <= 100) { // Less than 100ms remaining
+      throw new Error('Hard deadline exceeded before API call');
+    }
+
+    // Create AbortController for hard deadline enforcement
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => {
+      controller.abort();
+    }, Math.min(remainingTime - 50, 1800)); // Leave 50ms buffer, max 1800ms
+
     try {
       const prompt = `専門家名: ${expertName}
 
 以下のJSON形式で簡潔に回答:
 {
-  "role": "簡潔な役割（1-2行）",
+  "role": "簡潔な役割（1行）",
   "specialization": "主要専門分野",
   "expertiseLevel": "specialist/expert/senior のいずれか",
   "subSpecializations": ["領域1", "領域2", "領域3"],
@@ -53,13 +300,19 @@ export class OpenAIService {
 
 要点を絞り実用的な内容で日本語回答。`;
 
-      const response = await openai.chat.completions.create({
-        model: "gpt-4-turbo",
+      console.log(`[ExpertPrediction] Making API call for ${expertName} with ${remainingTime}ms remaining`);
+      
+      const response = await fastOpenai.chat.completions.create({
+        model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        max_tokens: 300,
+        max_tokens: 150,
         temperature: 0.7,
+      }, {
+        signal: controller.signal
       });
+
+      clearTimeout(timeoutId);
 
       const responseContent = response.choices[0].message.content || "{}";
       const result = JSON.parse(responseContent);
@@ -80,20 +333,14 @@ export class OpenAIService {
         researchFocus: result.researchFocus || "",
       };
     } catch (error) {
-      console.error("Expert prediction error:", error);
+      clearTimeout(timeoutId);
       
-      // Determine error type and throw appropriate error
-      if (error instanceof Error) {
-        if (error.message.includes('quota') || error.message.includes('429')) {
-          throw new Error('QUOTA_EXCEEDED');
-        } else if (error.message.includes('auth') || error.message.includes('401')) {
-          throw new Error('AUTH_FAILED');
-        } else if (error.message.includes('network') || error.message.includes('timeout')) {
-          throw new Error('NETWORK_ERROR');
-        }
+      // Check if it's an abort error (our timeout) or API error
+      if (controller.signal.aborted) {
+        throw new Error('Request aborted due to hard deadline');
       }
       
-      throw new Error('SERVICE_ERROR');
+      throw error;
     }
   }
 
