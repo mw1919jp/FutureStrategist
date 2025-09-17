@@ -23,7 +23,7 @@ export default function AnalysisResults({ analysis }: AnalysisResultsProps) {
           <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
             <span className="text-primary-foreground text-sm font-bold">AI</span>
           </div>
-          <h2 className="text-2xl font-bold text-foreground" data-testid="text-analysis-results-title">
+          <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100" data-testid="text-analysis-results-title">
             未来予測分析結果
           </h2>
         </div>
@@ -42,8 +42,8 @@ export default function AnalysisResults({ analysis }: AnalysisResultsProps) {
           <div className="bg-white dark:bg-card rounded-xl p-6 shadow-sm border border-border">
             <div className="flex items-center justify-between">
               <div>
-                <h3 className="text-lg font-semibold text-foreground mb-2" data-testid="text-download-title">📋 レポート生成完了</h3>
-                <p className="text-sm text-muted-foreground" data-testid="text-download-description">
+                <h3 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-2" data-testid="text-download-title">📋 レポート生成完了</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400" data-testid="text-download-description">
                   分析結果をマークダウン形式でダウンロードできます
                 </p>
               </div>
