@@ -141,10 +141,16 @@ async function processAnalysis(analysisId: string, scenario: any) {
       currentPhase: "1"
     });
 
+    // Calculate total steps for accurate progress tracking
+    const totalYears = targetYears.length;
+    const totalPhasesPerYear = 5;
+    const totalSteps = totalYears * totalPhasesPerYear;
+    
+    let currentStep = 0;
+    
     // Process each target year
     for (let yearIndex = 0; yearIndex < targetYears.length; yearIndex++) {
       const targetYear = targetYears[yearIndex];
-      const yearProgress = Math.floor((yearIndex / targetYears.length) * 100);
       
       // Phase 1: Expert analysis for this year
       logPhaseStart(analysisId, 1, `${targetYear}年 - 専門家による専門分野の調査`);
@@ -163,8 +169,9 @@ async function processAnalysis(analysisId: string, scenario: any) {
       }
       
       logPhaseComplete(analysisId, 1, `${targetYear}年 - 専門家による専門分野の調査`);
+      currentStep++;
       await storage.updateAnalysis(analysisId, {
-        progress: String(yearProgress + 20),
+        progress: String(Math.floor((currentStep / totalSteps) * 100)),
         currentPhase: "2"
       });
 
@@ -180,8 +187,9 @@ async function processAnalysis(analysisId: string, scenario: any) {
       );
       
       logPhaseComplete(analysisId, 2, `${targetYear}年 - シナリオ生成`);
+      currentStep++;
       await storage.updateAnalysis(analysisId, {
-        progress: String(yearProgress + 40),
+        progress: String(Math.floor((currentStep / totalSteps) * 100)),
         currentPhase: "3"
       });
 
@@ -197,8 +205,9 @@ async function processAnalysis(analysisId: string, scenario: any) {
       );
       
       logPhaseComplete(analysisId, 3, `${targetYear}年 - 超長期（2060年）からの戦略の見直し`);
+      currentStep++;
       await storage.updateAnalysis(analysisId, {
-        progress: String(yearProgress + 60),
+        progress: String(Math.floor((currentStep / totalSteps) * 100)),
         currentPhase: "4"
       });
 
@@ -214,8 +223,9 @@ async function processAnalysis(analysisId: string, scenario: any) {
       );
       
       logPhaseComplete(analysisId, 4, `${targetYear}年 - 戦略整合性評価`);
+      currentStep++;
       await storage.updateAnalysis(analysisId, {
-        progress: String(yearProgress + 80),
+        progress: String(Math.floor((currentStep / totalSteps) * 100)),
         currentPhase: "5"
       });
 
@@ -231,6 +241,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       );
       
       logPhaseComplete(analysisId, 5, `${targetYear}年 - 最終シナリオシミュレーション`);
+      currentStep++;
 
       // Compile phases for this year
       const phases: PhaseResult[] = [
