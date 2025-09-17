@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useQuery, useMutation } from "@tanstack/react-query";
-import { Plus, X, Bus } from "lucide-react";
+import { Plus, X, Bus, Sparkles, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -22,6 +22,8 @@ export default function ExpertConfig() {
   const [newResearchFocus, setNewResearchFocus] = useState("");
   const [currentSubSpec, setCurrentSubSpec] = useState("");
   const [currentInfoSource, setCurrentInfoSource] = useState("");
+  const [isLoadingPrediction, setIsLoadingPrediction] = useState(false);
+  const [hasAppliedPrediction, setHasAppliedPrediction] = useState(false);
   const { toast } = useToast();
 
   const { data: experts = [], isLoading } = useQuery<Expert[]>({
@@ -69,7 +71,10 @@ export default function ExpertConfig() {
     setNewResearchFocus("");
     setCurrentSubSpec("");
     setCurrentInfoSource("");
+    setHasAppliedPrediction(false);
+    setIsLoadingPrediction(false);
   };
+
 
   const deleteExpertMutation = useMutation({
     mutationFn: async (expertId: string) => {
@@ -90,6 +95,68 @@ export default function ExpertConfig() {
       });
     },
   });
+
+  const predictExpertInfoMutation = useMutation({
+    mutationFn: async (name: string) => {
+      const response = await apiRequest("POST", "/api/experts/predict", { name });
+      return response.json();
+    },
+    onSuccess: (data) => {
+      setNewExpertRole(data.role || "");
+      setNewSpecialization(data.specialization || "");
+      setNewExpertiseLevel(data.expertiseLevel || "expert");
+      setNewSubSpecializations(data.subSpecializations || []);
+      setNewInformationSources(data.informationSources || []);
+      setNewResearchFocus(data.researchFocus || "");
+      setHasAppliedPrediction(true);
+      setIsLoadingPrediction(false);
+      toast({
+        title: "情報を自動設定しました",
+        description: "AI が専門家情報を予測して設定しました。必要に応じて編集してください。",
+      });
+    },
+    onError: () => {
+      setIsLoadingPrediction(false);
+      toast({
+        title: "予測に失敗しました",
+        description: "専門家情報の自動設定ができませんでした。手動で入力してください。",
+        variant: "destructive",
+      });
+    },
+  });
+
+  // Debounced expert name prediction
+  const debouncedPredict = useCallback((name: string) => {
+    if (name.trim().length >= 3 && !hasAppliedPrediction) {
+      setIsLoadingPrediction(true);
+      predictExpertInfoMutation.mutate(name.trim());
+    }
+  }, [hasAppliedPrediction, predictExpertInfoMutation]);
+
+  useEffect(() => {
+    const timeoutId = setTimeout(() => {
+      if (newExpertName.trim().length >= 3 && !hasAppliedPrediction && !isLoadingPrediction) {
+        debouncedPredict(newExpertName);
+      }
+    }, 1000); // 1 second delay
+
+    return () => clearTimeout(timeoutId);
+  }, [newExpertName, debouncedPredict, hasAppliedPrediction, isLoadingPrediction]);
+
+  // Handle expert name change and reset prediction state when significantly modified
+  const handleExpertNameChange = (name: string) => {
+    setNewExpertName(name);
+    // Reset prediction state if user clears or significantly modifies the name
+    if (name.trim().length === 0) {
+      setHasAppliedPrediction(false);
+      setNewExpertRole("");
+      setNewSpecialization("");
+      setNewSubSpecializations([]);
+      setNewInformationSources([]);
+      setNewExpertiseLevel("expert");
+      setNewResearchFocus("");
+    }
+  };
 
   const addSubSpecialization = () => {
     if (currentSubSpec.trim() && !newSubSpecializations.includes(currentSubSpec.trim())) {
@@ -203,14 +270,31 @@ export default function ExpertConfig() {
           
           <div className="space-y-6 max-h-96 overflow-y-auto">
             <div>
-              <label className="text-sm font-medium text-foreground">専門家名</label>
+              <div className="flex items-center space-x-2 mb-2">
+                <label className="text-sm font-medium text-foreground">専門家名</label>
+                {isLoadingPrediction && (
+                  <div className="flex items-center space-x-1 text-xs text-muted-foreground">
+                    <Loader2 className="h-3 w-3 animate-spin" />
+                    <span>AI予測中...</span>
+                  </div>
+                )}
+                {hasAppliedPrediction && !isLoadingPrediction && (
+                  <div className="flex items-center space-x-1 text-xs text-green-600 dark:text-green-400">
+                    <Sparkles className="h-3 w-3" />
+                    <span>AI予測完了</span>
+                  </div>
+                )}
+              </div>
               <Input
                 value={newExpertName}
-                onChange={(e) => setNewExpertName(e.target.value)}
+                onChange={(e) => handleExpertNameChange(e.target.value)}
                 placeholder="例：マーケティング専門家"
                 className="mt-1"
                 data-testid="input-expert-name"
               />
+              <p className="text-xs text-muted-foreground mt-1">
+                専門家名を入力すると、AIが関連情報を自動予測します
+              </p>
             </div>
             
             <div>
