@@ -203,43 +203,57 @@ async function processAnalysis(analysisId: string, scenario: any) {
       currentPhase: "1"
     });
 
-    // Calculate total steps for accurate progress tracking
-    const totalYears = targetYears.length;
-    const totalPhasesPerYear = 5;
-    const totalSteps = totalYears * totalPhasesPerYear;
-    
+    // Calculate total steps: 1 (Phase 1) + targetYears.length (Phase 2) + 3 (Phase 3-5) = 4 + targetYears.length
+    const totalSteps = 1 + targetYears.length + 3;
     let currentStep = 0;
     
-    // Process each target year
-    for (let yearIndex = 0; yearIndex < targetYears.length; yearIndex++) {
-      const targetYear = targetYears[yearIndex];
-      
-      // Phase 1: Expert analysis for this year
-      logPhaseStart(analysisId, 1, `${targetYear}年 - 専門家による専門分野の調査`);
-      
-      const expertAnalyses: ExpertAnalysis[] = [];
+    // Phase 1: Parallel expert analysis (once for all years)
+    logPhaseStart(analysisId, 1, "専門家による専門分野の調査（全年対応）");
+    
+    // Create parallel analysis tasks for all experts and all years
+    const allAnalysisTasks: Promise<ExpertAnalysis & { targetYear: number }>[] = [];
+    
+    for (const targetYear of targetYears) {
       for (const expert of experts) {
-        const analysis = await openAIService.analyzeWithExpert(
+        const task = openAIService.analyzeWithExpert(
           expert.name,
           expert.role,
           scenario.theme,
           scenario.currentStrategy,
           targetYear,
           analysisId
-        );
-        expertAnalyses.push(analysis);
+        ).then(analysis => ({ ...analysis, targetYear }));
+        allAnalysisTasks.push(task);
       }
-      
-      logPhaseComplete(analysisId, 1, `${targetYear}年 - 専門家による専門分野の調査`);
-      currentStep++;
-      await storage.updateAnalysis(analysisId, {
-        progress: String(Math.floor((currentStep / totalSteps) * 100)),
-        currentPhase: "2"
-      });
+    }
+    
+    // Execute all expert analyses in parallel
+    const allAnalysisResults = await Promise.all(allAnalysisTasks);
+    
+    // Group analysis results by year
+    const expertAnalysesByYear = new Map<number, ExpertAnalysis[]>();
+    for (const result of allAnalysisResults) {
+      const { targetYear, ...analysis } = result;
+      if (!expertAnalysesByYear.has(targetYear)) {
+        expertAnalysesByYear.set(targetYear, []);
+      }
+      expertAnalysesByYear.get(targetYear)!.push(analysis);
+    }
+    
+    logPhaseComplete(analysisId, 1, "専門家による専門分野の調査（全年対応）");
+    currentStep++;
+    await storage.updateAnalysis(analysisId, {
+      progress: String(Math.floor((currentStep / totalSteps) * 100)),
+      currentPhase: "2"
+    });
 
-      // Phase 2: Scenario generation for this year
+    // Phase 2: Sequential scenario generation for each year (2030→2040→2050)
+    const scenariosByYear = new Map<number, string>();
+    
+    for (const targetYear of targetYears.sort()) {
       logPhaseStart(analysisId, 2, `${targetYear}年 - シナリオ生成`);
       
+      const expertAnalyses = expertAnalysesByYear.get(targetYear) || [];
       const scenarioContent = await openAIService.generateScenario(
         scenario.theme,
         scenario.currentStrategy,
@@ -248,64 +262,73 @@ async function processAnalysis(analysisId: string, scenario: any) {
         analysisId
       );
       
+      scenariosByYear.set(targetYear, scenarioContent);
+      
       logPhaseComplete(analysisId, 2, `${targetYear}年 - シナリオ生成`);
       currentStep++;
       await storage.updateAnalysis(analysisId, {
         progress: String(Math.floor((currentStep / totalSteps) * 100)),
-        currentPhase: "3"
+        currentPhase: currentStep === 1 + targetYears.length ? "3" : "2"
       });
+    }
 
-      // Phase 3: Long-term perspective for this year
-      logPhaseStart(analysisId, 3, `${targetYear}年 - 超長期（2060年）からの戦略の見直し`);
-      
-      const longTermPerspective = await openAIService.generateLongTermPerspective(
-        scenario.theme,
-        scenario.currentStrategy,
-        2060,
-        targetYear,
-        analysisId
-      );
-      
-      logPhaseComplete(analysisId, 3, `${targetYear}年 - 超長期（2060年）からの戦略の見直し`);
-      currentStep++;
-      await storage.updateAnalysis(analysisId, {
-        progress: String(Math.floor((currentStep / totalSteps) * 100)),
-        currentPhase: "4"
-      });
+    // Phase 3: Long-term perspective analysis (once for all years)
+    logPhaseStart(analysisId, 3, "超長期（2060年）からの戦略の見直し");
+    
+    const longTermYear = Math.max(...targetYears) + 10; // Use the furthest target year + 10
+    const longTermPerspective = await openAIService.generateLongTermPerspective(
+      scenario.theme,
+      scenario.currentStrategy,
+      longTermYear,
+      Math.max(...targetYears),
+      analysisId
+    );
+    
+    logPhaseComplete(analysisId, 3, "超長期（2060年）からの戦略の見直し");
+    currentStep++;
+    await storage.updateAnalysis(analysisId, {
+      progress: String(Math.floor((currentStep / totalSteps) * 100)),
+      currentPhase: "4"
+    });
 
-      // Phase 4: Strategic alignment evaluation for this year
-      logPhaseStart(analysisId, 4, `${targetYear}年 - 戦略整合性評価`);
-      
-      const strategicAlignment = await openAIService.evaluateStrategicAlignment(
-        scenario.theme,
-        scenario.currentStrategy,
-        targetYear,
-        [scenarioContent, longTermPerspective],
-        analysisId
-      );
-      
-      logPhaseComplete(analysisId, 4, `${targetYear}年 - 戦略整合性評価`);
-      currentStep++;
-      await storage.updateAnalysis(analysisId, {
-        progress: String(Math.floor((currentStep / totalSteps) * 100)),
-        currentPhase: "5"
-      });
+    // Phase 4: Strategic alignment evaluation (once for all scenarios)
+    logPhaseStart(analysisId, 4, "戦略整合性評価");
+    
+    const allScenarios = Array.from(scenariosByYear.values());
+    const strategicAlignment = await openAIService.evaluateStrategicAlignment(
+      scenario.theme,
+      scenario.currentStrategy,
+      Math.max(...targetYears), // Use the furthest target year
+      [...allScenarios, longTermPerspective],
+      analysisId
+    );
+    
+    logPhaseComplete(analysisId, 4, "戦略整合性評価");
+    currentStep++;
+    await storage.updateAnalysis(analysisId, {
+      progress: String(Math.floor((currentStep / totalSteps) * 100)),
+      currentPhase: "5"
+    });
 
-      // Phase 5: Final simulation for this year
-      logPhaseStart(analysisId, 5, `${targetYear}年 - 最終シナリオシミュレーション`);
-      
-      const finalSimulation = await openAIService.generateFinalSimulation(
-        scenario.theme,
-        scenario.currentStrategy,
-        targetYear,
-        [scenarioContent, longTermPerspective, strategicAlignment],
-        analysisId
-      );
-      
-      logPhaseComplete(analysisId, 5, `${targetYear}年 - 最終シナリオシミュレーション`);
-      currentStep++;
+    // Phase 5: Final integrated simulation (once for all years)
+    logPhaseStart(analysisId, 5, "最終統合分析");
+    
+    const finalSimulation = await openAIService.generateFinalSimulation(
+      scenario.theme,
+      scenario.currentStrategy,
+      Math.max(...targetYears),
+      [...allScenarios, longTermPerspective, strategicAlignment],
+      analysisId
+    );
+    
+    logPhaseComplete(analysisId, 5, "最終統合分析");
+    currentStep++;
 
-      // Compile phases for this year
+    // Compile results for each year
+    for (const targetYear of targetYears) {
+      const expertAnalyses = expertAnalysesByYear.get(targetYear) || [];
+      const scenarioContent = scenariosByYear.get(targetYear) || "";
+      
       const phases: PhaseResult[] = [
         {
           phase: 1,
@@ -330,7 +353,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
         },
         {
           phase: 5,
-          title: "最終シナリオシミュレーション",
+          title: "最終統合分析",
           content: finalSimulation
         }
       ];
