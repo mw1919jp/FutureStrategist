@@ -68,47 +68,144 @@ export interface ExpertPrediction {
   researchFocus: string;
 }
 
-// Template-based fallback responses for common expert types
+// Template-based fallback responses for future prediction analysis
 const expertFallbackTemplates: Record<string, ExpertPrediction> = {
+  // AI・テクノロジー分野
   "AI研究者": {
-    role: "人工知能研究・開発専門家",
-    specialization: "機械学習・深層学習",
+    role: "次世代AI技術と社会実装の専門家",
+    specialization: "AGI・量子AI・神経インターフェース技術",
     expertiseLevel: "expert",
-    subSpecializations: ["自然言語処理", "コンピュータビジョン", "強化学習"],
-    informationSources: ["学術論文", "技術カンファレンス"],
-    researchFocus: "AI技術の実用化と倫理的課題"
+    subSpecializations: ["汎用人工知能(AGI)", "量子機械学習", "脳-コンピューターインターフェース"],
+    informationSources: ["Nature AI論文", "MIT Technology Review", "OpenAI研究報告"],
+    researchFocus: "2030年代のAGI社会実装と労働市場への影響予測"
   },
+  "AIエンジニア": {
+    role: "AI実装・運用基盤設計の専門家",
+    specialization: "エンタープライズAI・MLOps・AI倫理",
+    expertiseLevel: "expert",
+    subSpecializations: ["大規模言語モデル運用", "AI倫理・安全性", "エッジAI最適化"],
+    informationSources: ["Kubernetes AI Report", "NVIDIA技術動向", "AI Ethics Guidelines"],
+    researchFocus: "2040年までの企業AI基盤と競争優位性の構築"
+  },
+  "データサイエンティスト": {
+    role: "予測分析・意思決定支援システムの専門家",
+    specialization: "リアルタイム分析・因果推論・予測モデリング",
+    expertiseLevel: "expert",
+    subSpecializations: ["因果機械学習", "リアルタイムストリーミング分析", "シミュレーション予測"],
+    informationSources: ["KDD会議論文", "McKinsey Analytics Report", "Gartner予測"],
+    researchFocus: "2050年の意思決定自動化と人間-AI協働モデル"
+  },
+
+  // ビジネス・経営分野
   "経営コンサルタント": {
-    role: "企業戦略・経営改善専門家",
-    specialization: "経営戦略・組織変革",
+    role: "デジタル変革・未来戦略設計の専門家",
+    specialization: "持続可能経営・レジリエント組織・新興市場戦略",
     expertiseLevel: "senior",
-    subSpecializations: ["デジタル変革", "事業再編", "組織開発"],
-    informationSources: ["市場調査", "業界レポート"],
-    researchFocus: "持続的競争優位の構築"
+    subSpecializations: ["サーキュラーエコノミー移行", "地政学リスク対応", "ステークホルダー資本主義"],
+    informationSources: ["BCG Future of Work", "WEF Global Risks Report", "PwC CEO Survey"],
+    researchFocus: "2030年代の地政学変化と企業の長期競争戦略"
   },
   "経済学者": {
-    role: "経済分析・政策研究専門家",
-    specialization: "マクロ経済・金融政策",
+    role: "マクロ経済・国際金融システム変化の専門家",
+    specialization: "デジタル通貨・新興国経済・気候経済学",
     expertiseLevel: "expert",
-    subSpecializations: ["金融市場", "国際経済", "労働経済"],
-    informationSources: ["統計データ", "政府報告書"],
-    researchFocus: "経済動向と政策効果の分析"
+    subSpecializations: ["中央銀行デジタル通貨(CBDC)", "脱炭素経済移行", "新興市場金融統合"],
+    informationSources: ["IMF World Economic Outlook", "BIS年次報告", "Climate Policy Initiative"],
+    researchFocus: "2040年の国際金融システム再編と企業財務戦略"
   },
+  "投資アナリスト": {
+    role: "新興資産・ESG投資・テクノロジー評価の専門家",
+    specialization: "量子技術投資・宇宙経済・バイオテック評価",
+    expertiseLevel: "expert",
+    subSpecializations: ["量子コンピューティング市場", "宇宙商業化投資", "合成生物学評価"],
+    informationSources: ["Goldman Sachs Future Tech", "ARK Invest Research", "Nature Biotechnology"],
+    researchFocus: "2050年の破壊的技術への投資機会と企業価値創造"
+  },
+
+  // デザイン・UX分野
+  "デザイナー": {
+    role: "次世代インターフェース・体験設計の専門家",
+    specialization: "空間UI・神経インターフェース・感情AI連携デザイン",
+    expertiseLevel: "expert",
+    subSpecializations: ["AR/VR空間インターフェース", "脳波UI/UX設計", "感情認識体験デザイン"],
+    informationSources: ["Apple Human Interface Guidelines", "Meta Reality Labs Research", "MIT Media Lab"],
+    researchFocus: "2030年代の没入型体験と人間中心設計の進化"
+  },
+  "UXデザイナー": {
+    role: "行動科学・認知負荷・アクセシビリティの専門家",
+    specialization: "ユニバーサルデザイン・AI支援UX・高齢化対応",
+    expertiseLevel: "expert",
+    subSpecializations: ["認知アクセシビリティ設計", "AI協働インターフェース", "多世代対応体験設計"],
+    informationSources: ["W3C Accessibility Guidelines", "Nielsen Norman Group", "Adobe UX Trends"],
+    researchFocus: "2040年の超高齢社会とインクルーシブテクノロジー"
+  },
+
+  // 技術・エンジニアリング分野
   "技術者": {
-    role: "技術開発・システム設計専門家",
-    specialization: "ソフトウェア・システム開発",
+    role: "インフラ・セキュリティ・分散システムの専門家",
+    specialization: "量子暗号・エッジコンピューティング・自律システム",
     expertiseLevel: "expert",
-    subSpecializations: ["クラウド技術", "データベース", "セキュリティ"],
-    informationSources: ["技術文書", "開発コミュニティ"],
-    researchFocus: "技術革新と実装効率の向上"
+    subSpecializations: ["量子暗号通信", "分散エッジAI", "自己修復システム"],
+    informationSources: ["IEEE Computer Society", "NIST Cybersecurity Framework", "Linux Foundation Reports"],
+    researchFocus: "2030年代の量子脅威対応と次世代インフラ設計"
   },
+  "ITコンサルタント": {
+    role: "エンタープライズ変革・クラウド戦略の専門家",
+    specialization: "レガシー刷新・ハイブリッドクラウド・DevSecOps",
+    expertiseLevel: "senior",
+    subSpecializations: ["メインフレーム現代化", "マルチクラウド戦略", "ゼロトラスト実装"],
+    informationSources: ["Gartner IT Roadmap", "Forrester Cloud Strategy", "Red Hat Enterprise Trends"],
+    researchFocus: "2040年のエンタープライズIT基盤と競争優位性"
+  },
+
+  // マーケティング・営業分野
   "マーケティング専門家": {
-    role: "市場分析・顧客戦略専門家",
-    specialization: "デジタルマーケティング",
+    role: "パーソナライゼーション・オムニチャネル戦略の専門家",
+    specialization: "AI駆動マーケティング・メタバース商業・Z世代エンゲージメント",
     expertiseLevel: "expert",
-    subSpecializations: ["ソーシャルメディア", "データ分析", "ブランド戦略"],
-    informationSources: ["消費者調査", "市場データ"],
-    researchFocus: "顧客体験の最適化と収益向上"
+    subSpecializations: ["リアルタイムパーソナライゼーション", "仮想空間コマース", "行動予測マーケティング"],
+    informationSources: ["HubSpot Future of Marketing", "Salesforce Customer 360", "Adobe Digital Economy Index"],
+    researchFocus: "2030年代の消費者行動変化とブランド体験設計"
+  },
+
+  // 環境・サステナビリティ分野
+  "環境専門家": {
+    role: "気候変動・資源循環・生態系保全の専門家",
+    specialization: "カーボンニュートラル・サーキュラーエコノミー・生物多様性",
+    expertiseLevel: "expert",
+    subSpecializations: ["炭素除去技術(DAC)", "バイオベース材料", "生態系サービス評価"],
+    informationSources: ["IPCC Assessment Reports", "Ellen MacArthur Foundation", "Nature Climate Change"],
+    researchFocus: "2050年ネットゼロ達成のための企業戦略とイノベーション"
+  },
+
+  // ヘルスケア・バイオテクノロジー分野
+  "医療専門家": {
+    role: "デジタル医療・予防医学・精密医療の専門家",
+    specialization: "遠隔医療・AI診断・個別化治療",
+    expertiseLevel: "expert",
+    subSpecializations: ["ウェアラブル診断", "ゲノム解析医療", "AI創薬支援"],
+    informationSources: ["New England Journal of Medicine", "Nature Medicine", "WHO Digital Health Reports"],
+    researchFocus: "2040年の予防中心医療と健康寿命延伸技術"
+  },
+
+  // 教育・人材開発分野
+  "教育専門家": {
+    role: "未来スキル・生涯学習・AI協働教育の専門家",
+    specialization: "パーソナライズ学習・VR教育・スキル予測",
+    expertiseLevel: "expert",
+    subSpecializations: ["適応的学習システム", "仮想実習環境", "未来スキル予測"],
+    informationSources: ["MIT OpenCourseWare Research", "Khan Academy Insights", "OECD Education Reports"],
+    researchFocus: "2030年代の労働市場変化と継続的スキル開発"
+  },
+
+  // 法務・規制分野
+  "法務専門家": {
+    role: "テクノロジー法・データガバナンス・国際規制の専門家",
+    specialization: "AI規制・プライバシー・国際データ移転",
+    expertiseLevel: "expert",
+    subSpecializations: ["AI責任法制", "量子暗号規制", "国際データガバナンス"],
+    informationSources: ["European AI Act", "GDPR Implementation Reports", "Stanford HAI Policy"],
+    researchFocus: "2040年の国際規制調和と企業コンプライアンス戦略"
   }
 };
 
@@ -179,6 +276,96 @@ export class OpenAIService {
     }
   }
 
+  private generateGenericRole(expertName: string): {
+    description: string;
+    specialization: string;
+    subSpecializations: string[];
+    informationSources: string[];
+    researchFocus: string;
+  } {
+    // Analyze expert name for domain hints
+    const nameLower = expertName.toLowerCase();
+    
+    if (nameLower.includes('AI') || nameLower.includes('人工知能') || nameLower.includes('機械学習')) {
+      return {
+        description: "AI技術・機械学習応用の専門家",
+        specialization: "AI実装・データサイエンス・自動化技術",
+        subSpecializations: ["機械学習モデル設計", "データパイプライン構築", "AI倫理・安全性"],
+        informationSources: ["AI研究論文", "テクノロジーカンファレンス", "業界ベンチマーク"],
+        researchFocus: "2030-2040年のAI社会実装と産業変革予測"
+      };
+    }
+    
+    if (nameLower.includes('データ') || nameLower.includes('アナリスト') || nameLower.includes('統計')) {
+      return {
+        description: "データ分析・予測モデリングの専門家",
+        specialization: "統計分析・予測モデル・ビジネスインテリジェンス",
+        subSpecializations: ["予測分析モデル", "リアルタイムダッシュボード", "統計的因果推論"],
+        informationSources: ["統計学会報告", "データサイエンス研究", "業界動向調査"],
+        researchFocus: "2030年代のデータドリブン意思決定と自動化"
+      };
+    }
+    
+    if (nameLower.includes('マーケティング') || nameLower.includes('営業') || nameLower.includes('販売')) {
+      return {
+        description: "デジタルマーケティング・顧客体験設計の専門家",
+        specialization: "オムニチャネル戦略・パーソナライゼーション・ROI最適化",
+        subSpecializations: ["顧客行動分析", "マルチタッチ・アトリビューション", "リアルタイム最適化"],
+        informationSources: ["マーケティングテクノロジー動向", "消費者行動研究", "デジタル広告効果測定"],
+        researchFocus: "2040年の消費者接点進化とブランド体験戦略"
+      };
+    }
+    
+    if (nameLower.includes('経営') || nameLower.includes('戦略') || nameLower.includes('コンサル')) {
+      return {
+        description: "企業戦略・組織変革・未来設計の専門家",
+        specialization: "デジタル変革・組織レジリエンス・持続可能経営",
+        subSpecializations: ["事業ポートフォリオ戦略", "組織アジリティ向上", "ステークホルダー価値創造"],
+        informationSources: ["戦略コンサルティング研究", "組織行動学", "産業構造分析"],
+        researchFocus: "2030-2050年の産業再編と企業の長期競争優位性"
+      };
+    }
+    
+    if (nameLower.includes('技術') || nameLower.includes('エンジニア') || nameLower.includes('開発')) {
+      return {
+        description: "次世代技術・システム設計・インフラ構築の専門家",
+        specialization: "クラウドネイティブ・セキュリティ・スケーラブル設計",
+        subSpecializations: ["分散システム設計", "セキュリティアーキテクチャ", "パフォーマンス最適化"],
+        informationSources: ["技術標準化団体", "オープンソースコミュニティ", "システム設計事例"],
+        researchFocus: "2040年の技術基盤進化と企業システム戦略"
+      };
+    }
+    
+    if (nameLower.includes('デザイン') || nameLower.includes('UX') || nameLower.includes('UI')) {
+      return {
+        description: "ユーザー体験・インターフェース設計・行動デザインの専門家",
+        specialization: "人間中心設計・アクセシビリティ・新興インターフェース",
+        subSpecializations: ["ユーザー行動分析", "インタラクションデザイン", "ユニバーサルデザイン"],
+        informationSources: ["UX研究論文", "デザイン動向レポート", "アクセシビリティガイドライン"],
+        researchFocus: "2030年代の人間-技術インターフェース進化と体験設計"
+      };
+    }
+    
+    if (nameLower.includes('金融') || nameLower.includes('投資') || nameLower.includes('経済')) {
+      return {
+        description: "金融市場・投資戦略・経済動向分析の専門家",
+        specialization: "フィンテック・デジタル資産・リスク管理",
+        subSpecializations: ["暗号資産評価", "ESG投資戦略", "金融技術革新"],
+        informationSources: ["中央銀行レポート", "金融市場データ", "フィンテック動向"],
+        researchFocus: "2040年の金融システム変革と企業財務戦略"
+      };
+    }
+    
+    // Default for unrecognized expert types
+    return {
+      description: "未来予測・戦略分析・イノベーション評価の専門家",
+      specialization: "新興技術評価・市場動向分析・戦略的意思決定支援",
+      subSpecializations: ["トレンド分析", "技術影響評価", "戦略的リスク分析"],
+      informationSources: ["未来研究レポート", "技術動向調査", "産業分析データ"],
+      researchFocus: "2030-2050年の技術・社会変化と企業戦略への影響"
+    };
+  }
+
   private getFallbackPrediction(expertName: string): ExpertPrediction {
     // Check for exact matches first
     const exactMatch = expertFallbackTemplates[expertName];
@@ -196,14 +383,15 @@ export class OpenAIService {
       }
     }
 
-    // Generic fallback
+    // Enhanced generic fallback based on expert name analysis
+    const genericRole = this.generateGenericRole(expertName);
     return {
-      role: `${expertName} - 専門分野の専門家`,
-      specialization: "専門分野",
+      role: `${expertName} - ${genericRole.description}`,
+      specialization: genericRole.specialization,
       expertiseLevel: "expert",
-      subSpecializations: ["専門領域1", "専門領域2", "専門領域3"],
-      informationSources: ["専門文献", "業界情報"],
-      researchFocus: "分野の発展と実用化"
+      subSpecializations: genericRole.subSpecializations,
+      informationSources: genericRole.informationSources,
+      researchFocus: genericRole.researchFocus
     };
   }
 
@@ -286,19 +474,31 @@ export class OpenAIService {
     }, Math.min(remainingTime - 50, 1800)); // Leave 50ms buffer, max 1800ms
 
     try {
-      const prompt = `専門家名: ${expertName}
+      const prompt = `あなたは「${expertName}」のプロフィールを設定する専門家です。この専門家は2030年、2040年、2050年の未来予測分析を行う重要な役割を担います。
 
-以下のJSON形式で簡潔に回答:
+**重要な背景:**
+- この専門家は企業の未来戦略策定を支援する
+- 2030年〜2050年の長期的視点での分析が必要
+- 技術・社会・経済の変化を予測し、具体的な戦略提言を行う
+
+**${expertName}の専門プロフィールを以下のJSON形式で詳細に設定してください:**
+
 {
-  "role": "簡潔な役割（1行）",
-  "specialization": "主要専門分野",
-  "expertiseLevel": "specialist/expert/senior のいずれか",
-  "subSpecializations": ["領域1", "領域2", "領域3"],
-  "informationSources": ["情報源1", "情報源2"],
-  "researchFocus": "研究フォーカス（簡潔に）"
+  "role": "未来予測分析における${expertName}の具体的役割と責任（専門性を明確に表現）",
+  "specialization": "2030年〜2050年の予測に重要な主要専門分野（最新技術・トレンドを含む）",
+  "expertiseLevel": "specialist/expert/senior のいずれか（未来予測の専門性レベル）",
+  "subSpecializations": ["未来予測に必須の専門領域1", "新興技術・手法2", "戦略的分析手法3"],
+  "informationSources": ["信頼できる専門情報源1", "最新動向を把握する情報源2"],
+  "researchFocus": "2030年〜2050年の時間軸で企業が注目すべき具体的研究テーマ"
 }
 
-要点を絞り実用的な内容で日本語回答。`;
+**設定指針:**
+- 各フィールドは未来予測分析に実際に役立つ具体的内容にする
+- 一般的ではなく、${expertName}固有の専門性を反映する
+- 2030年以降の技術・社会変化を見据えた最新の専門知識を含める
+- 企業戦略に直結する実用的な専門性を重視する
+
+日本語で詳細かつ実用的な内容を回答してください。`;
 
       console.log(`[ExpertPrediction] Making API call for ${expertName} with ${remainingTime}ms remaining`);
       
@@ -306,8 +506,8 @@ export class OpenAIService {
         model: "gpt-4o-mini",
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
-        max_tokens: 150,
-        temperature: 0.7,
+        max_tokens: 300,
+        temperature: 0.3,
       }, {
         signal: controller.signal
       });
