@@ -195,30 +195,33 @@ export default function ExpertConfig() {
     },
   });
 
-  // Debounced expert name prediction with race condition protection
-  const debouncedPredict = useCallback((name: string) => {
-    if (name.trim().length >= 3 && !hasAppliedPrediction) {
+  // Manual prediction function triggered by button click
+  const handlePredictExpertInfo = useCallback(() => {
+    if (newExpertName.trim().length >= 3) {
       const requestId = `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       setCurrentRequestId(requestId);
       setIsLoadingPrediction(true);
-      predictExpertInfoMutation.mutate({ name: name.trim(), requestId });
+      predictExpertInfoMutation.mutate({ name: newExpertName.trim(), requestId });
+    } else {
+      toast({
+        title: "入力エラー",
+        description: "専門家名は3文字以上で入力してください。",
+        variant: "destructive",
+      });
     }
-  }, [hasAppliedPrediction, predictExpertInfoMutation]);
+  }, [newExpertName, predictExpertInfoMutation, toast]);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      if (newExpertName.trim().length >= 3 && !hasAppliedPrediction && !isLoadingPrediction) {
-        debouncedPredict(newExpertName);
-      }
-    }, 1000); // 1 second delay
-
-    return () => clearTimeout(timeoutId);
-  }, [newExpertName, debouncedPredict, hasAppliedPrediction, isLoadingPrediction]);
-
-  // Handle expert name change and reset prediction state when significantly modified
+  // Handle expert name change and reset prediction state when cleared
   const handleExpertNameChange = (name: string) => {
     setNewExpertName(name);
-    // Reset prediction state if user clears or significantly modifies the name
+    
+    // If previous prediction was applied and user modifies the name significantly, 
+    // clear prediction status to allow new prediction
+    if (hasAppliedPrediction && name.trim() !== newExpertName.trim()) {
+      setHasAppliedPrediction(false);
+    }
+    
+    // Reset all fields if user clears the name completely
     if (name.trim().length === 0) {
       setHasAppliedPrediction(false);
       setIsLoadingPrediction(false);
@@ -359,15 +362,38 @@ export default function ExpertConfig() {
                   </div>
                 )}
               </div>
-              <Input
-                value={newExpertName}
-                onChange={(e) => handleExpertNameChange(e.target.value)}
-                placeholder="例：マーケティング専門家"
-                className="mt-1"
-                data-testid="input-expert-name"
-              />
+              <div className="flex space-x-2">
+                <Input
+                  value={newExpertName}
+                  onChange={(e) => handleExpertNameChange(e.target.value)}
+                  placeholder="例：マーケティング専門家"
+                  className="flex-1"
+                  data-testid="input-expert-name"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={handlePredictExpertInfo}
+                  disabled={isLoadingPrediction || newExpertName.trim().length < 3}
+                  className="min-w-[100px]"
+                  data-testid="button-predict-expert"
+                >
+                  {isLoadingPrediction ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-1" />
+                      予測中
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4 mr-1" />
+                      AI予測
+                    </>
+                  )}
+                </Button>
+              </div>
               <p className="text-xs text-muted-foreground mt-1">
-                専門家名を入力すると、AIが関連情報を自動予測します
+                AI予測ボタンをクリックして専門家情報を自動生成します（3文字以上入力してください）
               </p>
             </div>
             

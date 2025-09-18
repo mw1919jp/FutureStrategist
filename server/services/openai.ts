@@ -11,7 +11,7 @@ const openai = new OpenAI({
 const fastOpenai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || process.env.OPENAI_API_KEY_ENV_VAR || "default_key",
   maxRetries: 0,
-  timeout: 1800, // 1.8 second timeout to guarantee <2s total response
+  timeout: 10000, // 10 second timeout for detailed expert prediction
 });
 
 // In-memory cache for expert predictions with TTL
@@ -36,8 +36,8 @@ const circuitBreaker = new Map<string, CircuitBreakerState>();
 const CACHE_TTL = 15 * 60 * 1000;
 // Circuit breaker timeout: 10 seconds
 const CIRCUIT_BREAKER_TIMEOUT = 10 * 1000;
-// Hard deadline for total response: 2 seconds
-const HARD_DEADLINE = 2000;
+// Hard deadline for total response: 10 seconds (for detailed AI prediction)
+const HARD_DEADLINE = 10000;
 
 export interface ExpertAnalysis {
   expert: string;
@@ -547,7 +547,7 @@ export class OpenAIService {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => {
       controller.abort();
-    }, Math.min(remainingTime - 50, 1800)); // Leave 50ms buffer, max 1800ms
+    }, Math.min(remainingTime - 50, 10000)); // Leave 50ms buffer, max 10000ms
 
     try {
       const prompt = `あなたは「${expertName}」のプロフィールを設定する専門家です。この専門家は2030年、2040年、2050年の未来予測分析を行う重要な役割を担います。
