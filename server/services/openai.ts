@@ -286,29 +286,98 @@ export class OpenAIService {
     // Analyze expert name for domain hints
     const nameLower = expertName.toLowerCase();
     
-    if (nameLower.includes('AI') || nameLower.includes('人工知能') || nameLower.includes('機械学習')) {
+    // Energy & Electric Vehicle
+    if (nameLower.includes('ev') || nameLower.includes('電気自動車') || nameLower.includes('バッテリー') || nameLower.includes('充電')) {
       return {
-        description: "AI技術・機械学習応用の専門家",
-        specialization: "AI実装・データサイエンス・自動化技術",
+        description: "電気自動車・次世代モビリティの専門家",
+        specialization: "EV普及戦略・充電インフラ・バッテリー技術・自動運転",
+        subSpecializations: ["EVバッテリー技術", "充電インフラ整備", "自動運転システム"],
+        informationSources: ["EV市場分析レポート", "バッテリー技術動向", "モビリティ業界調査"],
+        researchFocus: "2030-2040年のEV完全普及と交通システム変革"
+      };
+    }
+    
+    // Gas & Energy Infrastructure
+    if (nameLower.includes('ガス') || nameLower.includes('gas') || nameLower.includes('エネルギー') || nameLower.includes('電力') || nameLower.includes('電気')) {
+      return {
+        description: "エネルギー・電力システム・脱炭素化の専門家",
+        specialization: "再生可能エネルギー・スマートグリッド・カーボンニュートラル",
+        subSpecializations: ["再生エネルギー統合", "エネルギー貯蔵システム", "脱炭素化戦略"],
+        informationSources: ["IEA世界エネルギー展望", "再生エネルギー統計", "脱炭素技術レポート"],
+        researchFocus: "2050年カーボンニュートラル実現とエネルギー産業構造変革"
+      };
+    }
+    
+    // Sports & Media
+    if (nameLower.includes('スポーツ') || nameLower.includes('sports') || nameLower.includes('ライター') || nameLower.includes('記者') || nameLower.includes('メディア')) {
+      return {
+        description: "スポーツビジネス・メディア・エンターテインメントの専門家",
+        specialization: "スポーツテック・ファン体験・デジタルコンテンツ・放映権ビジネス",
+        subSpecializations: ["スポーツデータ分析", "ファンエンゲージメント", "デジタル配信戦略"],
+        informationSources: ["スポーツ業界レポート", "メディア技術動向", "エンターテインメント市場調査"],
+        researchFocus: "2030年代のスポーツ体験革新とメディア産業変化"
+      };
+    }
+    
+    // Automotive & Manufacturing
+    if (nameLower.includes('自動車') || nameLower.includes('製造') || nameLower.includes('工場') || nameLower.includes('生産')) {
+      return {
+        description: "自動車産業・製造業・Industry 4.0の専門家",
+        specialization: "スマート工場・自動化・サプライチェーン・品質管理",
+        subSpecializations: ["IoT製造システム", "ロボット自動化", "予測保全"],
+        informationSources: ["製造業DX事例", "自動化技術動向", "サプライチェーン分析"],
+        researchFocus: "2040年の完全自動化工場と製造業構造変革"
+      };
+    }
+    
+    // Healthcare & Medicine
+    if (nameLower.includes('医療') || nameLower.includes('健康') || nameLower.includes('病院') || nameLower.includes('薬') || nameLower.includes('医師') || nameLower.includes('看護')) {
+      return {
+        description: "医療・ヘルスケア・デジタル医療の専門家",
+        specialization: "テレメディシン・AI診断・個人化医療・予防医学",
+        subSpecializations: ["遠隔医療システム", "AI医療画像解析", "予防・予測医療"],
+        informationSources: ["医療技術学会", "デジタルヘルス動向", "規制・承認動向"],
+        researchFocus: "2030年代の医療DXと個人化医療システム普及"
+      };
+    }
+    
+    // Education & Human Resources
+    if (nameLower.includes('教育') || nameLower.includes('学習') || nameLower.includes('人事') || nameLower.includes('HR') || nameLower.includes('採用')) {
+      return {
+        description: "教育・人材開発・組織学習の専門家",
+        specialization: "EdTech・スキル開発・リモート学習・人材戦略",
+        subSpecializations: ["オンライン学習プラットフォーム", "スキルベース採用", "継続学習システム"],
+        informationSources: ["教育技術研究", "人材開発トレンド", "労働市場分析"],
+        researchFocus: "2040年の働き方変化と人材育成システム進化"
+      };
+    }
+    
+    // AI & Technology
+    if (nameLower.includes('AI') || nameLower.includes('人工知能') || nameLower.includes('機械学習') || nameLower.includes('DX')) {
+      return {
+        description: "AI技術・機械学習応用・デジタル変革の専門家",
+        specialization: "AI実装・データサイエンス・自動化技術・DX戦略",
         subSpecializations: ["機械学習モデル設計", "データパイプライン構築", "AI倫理・安全性"],
         informationSources: ["AI研究論文", "テクノロジーカンファレンス", "業界ベンチマーク"],
         researchFocus: "2030-2040年のAI社会実装と産業変革予測"
       };
     }
     
-    if (nameLower.includes('データ') || nameLower.includes('アナリスト') || nameLower.includes('統計')) {
+    // Data & Analytics
+    if (nameLower.includes('データ') || nameLower.includes('アナリスト') || nameLower.includes('統計') || nameLower.includes('分析')) {
       return {
-        description: "データ分析・予測モデリングの専門家",
-        specialization: "統計分析・予測モデル・ビジネスインテリジェンス",
+        description: "データ分析・予測モデリング・ビジネスインテリジェンスの専門家",
+        specialization: "統計分析・予測モデル・データ戦略・意思決定支援",
         subSpecializations: ["予測分析モデル", "リアルタイムダッシュボード", "統計的因果推論"],
         informationSources: ["統計学会報告", "データサイエンス研究", "業界動向調査"],
         researchFocus: "2030年代のデータドリブン意思決定と自動化"
       };
     }
     
-    if (nameLower.includes('マーケティング') || nameLower.includes('営業') || nameLower.includes('販売')) {
+    // Marketing & Sales
+    if (nameLower.includes('マーケティング') || nameLower.includes('営業') || nameLower.includes('販売') || nameLower.includes('広告')) {
       return {
-        description: "デジタルマーケティング・顧客体験設計の専門家",
+        description: "デジタルマーケティング・顧客体験・ブランド戦略の専門家",
         specialization: "オムニチャネル戦略・パーソナライゼーション・ROI最適化",
         subSpecializations: ["顧客行動分析", "マルチタッチ・アトリビューション", "リアルタイム最適化"],
         informationSources: ["マーケティングテクノロジー動向", "消費者行動研究", "デジタル広告効果測定"],
@@ -316,53 +385,60 @@ export class OpenAIService {
       };
     }
     
-    if (nameLower.includes('経営') || nameLower.includes('戦略') || nameLower.includes('コンサル')) {
+    // Business Strategy & Management
+    if (nameLower.includes('経営') || nameLower.includes('戦略') || nameLower.includes('コンサル') || nameLower.includes('社長') || nameLower.includes('CEO') || nameLower.includes('役員')) {
       return {
-        description: "企業戦略・組織変革・未来設計の専門家",
-        specialization: "デジタル変革・組織レジリエンス・持続可能経営",
+        description: "企業戦略・経営層意思決定・組織変革の専門家",
+        specialization: "デジタル変革・組織レジリエンス・持続可能経営・事業戦略",
         subSpecializations: ["事業ポートフォリオ戦略", "組織アジリティ向上", "ステークホルダー価値創造"],
         informationSources: ["戦略コンサルティング研究", "組織行動学", "産業構造分析"],
-        researchFocus: "2030-2050年の産業再編と企業の長期競争優位性"
+        researchFocus: "2030-2050年の産業再編と企業の長期競争優位性構築"
       };
     }
     
-    if (nameLower.includes('技術') || nameLower.includes('エンジニア') || nameLower.includes('開発')) {
+    // Technology & Engineering
+    if (nameLower.includes('技術') || nameLower.includes('エンジニア') || nameLower.includes('開発') || nameLower.includes('システム')) {
       return {
         description: "次世代技術・システム設計・インフラ構築の専門家",
-        specialization: "クラウドネイティブ・セキュリティ・スケーラブル設計",
+        specialization: "クラウドネイティブ・セキュリティ・スケーラブル設計・技術戦略",
         subSpecializations: ["分散システム設計", "セキュリティアーキテクチャ", "パフォーマンス最適化"],
         informationSources: ["技術標準化団体", "オープンソースコミュニティ", "システム設計事例"],
         researchFocus: "2040年の技術基盤進化と企業システム戦略"
       };
     }
     
-    if (nameLower.includes('デザイン') || nameLower.includes('UX') || nameLower.includes('UI')) {
+    // Finance & Economics
+    if (nameLower.includes('金融') || nameLower.includes('投資') || nameLower.includes('経済') || nameLower.includes('財務') || nameLower.includes('銀行')) {
       return {
-        description: "ユーザー体験・インターフェース設計・行動デザインの専門家",
-        specialization: "人間中心設計・アクセシビリティ・新興インターフェース",
-        subSpecializations: ["ユーザー行動分析", "インタラクションデザイン", "ユニバーサルデザイン"],
-        informationSources: ["UX研究論文", "デザイン動向レポート", "アクセシビリティガイドライン"],
-        researchFocus: "2030年代の人間-技術インターフェース進化と体験設計"
-      };
-    }
-    
-    if (nameLower.includes('金融') || nameLower.includes('投資') || nameLower.includes('経済')) {
-      return {
-        description: "金融市場・投資戦略・経済動向分析の専門家",
-        specialization: "フィンテック・デジタル資産・リスク管理",
+        description: "金融市場・投資戦略・経済動向・財務戦略の専門家",
+        specialization: "フィンテック・デジタル資産・リスク管理・ESG投資",
         subSpecializations: ["暗号資産評価", "ESG投資戦略", "金融技術革新"],
         informationSources: ["中央銀行レポート", "金融市場データ", "フィンテック動向"],
         researchFocus: "2040年の金融システム変革と企業財務戦略"
       };
     }
     
-    // Default for unrecognized expert types
+    // Supply Chain & Logistics
+    if (nameLower.includes('物流') || nameLower.includes('サプライ') || nameLower.includes('調達') || nameLower.includes('配送')) {
+      return {
+        description: "サプライチェーン・物流・調達戦略の専門家",
+        specialization: "デジタル物流・自動化・トレーサビリティ・リスク管理",
+        subSpecializations: ["物流自動化", "在庫最適化", "サプライチェーン可視化"],
+        informationSources: ["物流業界レポート", "SCM技術動向", "貿易・関税動向"],
+        researchFocus: "2030年代の自動化物流とグローバルサプライチェーン再構築"
+      };
+    }
+    
+    // Default for unrecognized expert types - more personalized
+    const words = expertName.split(/[\s・\-_]+/).filter(w => w.length > 0);
+    const lastWord = words[words.length - 1];
+    
     return {
-      description: "未来予測・戦略分析・イノベーション評価の専門家",
-      specialization: "新興技術評価・市場動向分析・戦略的意思決定支援",
-      subSpecializations: ["トレンド分析", "技術影響評価", "戦略的リスク分析"],
-      informationSources: ["未来研究レポート", "技術動向調査", "産業分析データ"],
-      researchFocus: "2030-2050年の技術・社会変化と企業戦略への影響"
+      description: `${lastWord}分野・業界動向・専門戦略の専門家`,
+      specialization: "業界トレンド分析・競合戦略・イノベーション評価・市場予測",
+      subSpecializations: [`${lastWord}業界分析`, "競合戦略研究", "新技術評価"],
+      informationSources: [`${lastWord}業界レポート`, "市場調査データ", "専門誌・学会"],
+      researchFocus: `2030-2050年の${lastWord}分野における技術・市場変化と戦略的機会`
     };
   }
 
