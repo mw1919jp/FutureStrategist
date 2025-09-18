@@ -217,16 +217,48 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                     <User className="h-4 w-4 text-blue-600" />
                     <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100">専門家分析完了 ({partialResults.expertAnalyses.length}件)</h4>
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-3">
                     {partialResults.expertAnalyses.slice(-3).map((analysis, index) => (
-                      <div key={index} className="flex items-center justify-between text-xs bg-white dark:bg-gray-900 rounded p-2 border border-blue-100 dark:border-blue-900">
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-3 w-3 text-green-600" />
-                          <span className="font-medium">{analysis.expert}</span>
-                          <span className="text-gray-600 dark:text-gray-400">({analysis.year}年)</span>
+                      <div key={index} className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-blue-100 dark:border-blue-900 space-y-3">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="font-medium text-blue-900 dark:text-blue-100">{analysis.expert}</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">({analysis.year}年)</span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(analysis.completedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(analysis.completedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                        
+                        {/* Content Preview */}
+                        <div className="text-sm space-y-2">
+                          <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {analysis.content.length > 200 
+                              ? `${analysis.content.substring(0, 200)}...` 
+                              : analysis.content}
+                          </div>
+                          {analysis.recommendations && analysis.recommendations.length > 0 && (
+                            <div>
+                              <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">主要な推奨事項:</div>
+                              <ul className="text-xs text-gray-600 dark:text-gray-400 space-y-1 ml-3">
+                                {analysis.recommendations.slice(0, 3).map((rec, recIndex) => (
+                                  <li key={recIndex} className="flex items-start space-x-1">
+                                    <span className="text-blue-600 mt-1">•</span>
+                                    <span className="leading-relaxed">
+                                      {rec.length > 80 ? `${rec.substring(0, 80)}...` : rec}
+                                    </span>
+                                  </li>
+                                ))}
+                                {analysis.recommendations.length > 3 && (
+                                  <li className="text-xs text-blue-600 dark:text-blue-400 italic">
+                                    他 {analysis.recommendations.length - 3} 項目...
+                                  </li>
+                                )}
+                              </ul>
+                            </div>
+                          )}
                         </div>
                       </div>
                     ))}
@@ -241,16 +273,31 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                     <Calendar className="h-4 w-4 text-green-600" />
                     <h4 className="text-sm font-medium text-green-900 dark:text-green-100">年別シナリオ完了 ({partialResults.yearScenarios.length}件)</h4>
                   </div>
-                  <div className="grid gap-2">
+                  <div className="grid gap-3">
                     {partialResults.yearScenarios.map((scenario, index) => (
-                      <div key={index} className="flex items-center justify-between text-xs bg-white dark:bg-gray-900 rounded p-2 border border-green-100 dark:border-green-900">
-                        <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-3 w-3 text-green-600" />
-                          <span className="font-medium">{scenario.year}年シナリオ</span>
-                          <span className="text-gray-600 dark:text-gray-400">({Math.round(scenario.content.length / 1000)}k文字)</span>
+                      <div key={index} className="bg-white dark:bg-gray-900 rounded-lg p-4 border border-green-100 dark:border-green-900 space-y-3">
+                        {/* Header */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center space-x-2">
+                            <CheckCircle className="h-4 w-4 text-green-600" />
+                            <span className="font-medium text-green-900 dark:text-green-100">{scenario.year}年シナリオ</span>
+                            <span className="text-sm text-gray-600 dark:text-gray-400">({Math.round(scenario.content.length / 1000)}k文字)</span>
+                          </div>
+                          <div className="text-xs text-gray-500">
+                            {new Date(scenario.completedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                          </div>
                         </div>
-                        <div className="text-xs text-gray-500">
-                          {new Date(scenario.completedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                        
+                        {/* Content Preview */}
+                        <div className="text-sm space-y-2">
+                          <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
+                            {scenario.content.length > 300 
+                              ? `${scenario.content.substring(0, 300)}...` 
+                              : scenario.content}
+                          </div>
+                          <div className="text-xs text-blue-600 dark:text-blue-400 italic">
+                            完全な内容は分析完了後にご覧いただけます
+                          </div>
                         </div>
                       </div>
                     ))}

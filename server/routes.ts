@@ -336,53 +336,88 @@ async function processAnalysis(analysisId: string, scenario: any) {
       currentPhase: "2"
     });
 
-    // Phase 2: Sequential scenario generation for each year (2030→2040→2050)
+    // Phase 2: PARALLEL scenario generation for all years (2030 | 2040 | 2050 simultaneously)
     const scenariosByYear = new Map<number, string>();
     
-    logDebug(analysisId, `=== PHASE 2 SEQUENTIAL PROCESSING START ===`);
-    logDebug(analysisId, `About to process ${targetYears.length} years in sequence: ${targetYears.join(', ')}`);
+    logDebug(analysisId, `=== PHASE 2 PARALLEL PROCESSING START ===`);
+    logDebug(analysisId, `About to process ${targetYears.length} years in PARALLEL: ${targetYears.join(', ')}`);
     
-    for (const targetYear of [...targetYears].sort((a, b) => a - b)) {
-      logPhaseStart(analysisId, 2, `${targetYear}年 - シナリオ生成`);
-      logDebug(analysisId, `=== PROCESSING YEAR ${targetYear} START ===`);
-      
-      const expertAnalyses = expertAnalysesByYear.get(targetYear) || [];
-      logDebug(analysisId, `Processing year ${targetYear} with ${expertAnalyses.length} expert analyses`);
-      
-      const scenarioContent = await openAIService.generateScenario(
-        scenario.theme,
-        scenario.currentStrategy,
-        targetYear,
-        expertAnalyses,
-        analysisId
-      );
-      
-      scenariosByYear.set(targetYear, scenarioContent);
-      logDebug(analysisId, `Year ${targetYear} scenario generation completed, content length: ${scenarioContent.length} chars`);
-      
-      // Send partial year scenario result immediately
-      const partialYearResult: PartialYearScenario = {
-        year: targetYear,
-        content: scenarioContent,
-        completedAt: new Date().toISOString()
-      };
-      sendPartialYearScenario(analysisId, partialYearResult);
-      
-      // Update partial results in database
-      await updatePartialResults(analysisId, 'yearScenarios', partialYearResult);
-      
-      logPhaseComplete(analysisId, 2, `${targetYear}年 - シナリオ生成`);
-      logDebug(analysisId, `=== PROCESSING YEAR ${targetYear} END ===`);
-      
-      currentStep++;
-      await storage.updateAnalysis(analysisId, {
-        progress: String(Math.floor((currentStep / totalSteps) * 100)),
-        currentPhase: currentStep === 1 + targetYears.length ? "3" : "2"
-      });
+    // Create parallel scenario generation tasks
+    const scenarioTasks = targetYears.map(targetYear => 
+      limit(async () => {
+        try {
+          logPhaseStart(analysisId, 2, `${targetYear}年 - シナリオ生成`);
+          logDebug(analysisId, `=== PARALLEL PROCESSING YEAR ${targetYear} START ===`);
+          
+          const expertAnalyses = expertAnalysesByYear.get(targetYear) || [];
+          logDebug(analysisId, `Processing year ${targetYear} with ${expertAnalyses.length} expert analyses`);
+          
+          const scenarioContent = await openAIService.generateScenario(
+            scenario.theme,
+            scenario.currentStrategy,
+            targetYear,
+            expertAnalyses,
+            analysisId
+          );
+          
+          logDebug(analysisId, `Year ${targetYear} scenario generation completed, content length: ${scenarioContent.length} chars`);
+          
+          // Send partial year scenario result immediately
+          const partialYearResult: PartialYearScenario = {
+            year: targetYear,
+            content: scenarioContent,
+            completedAt: new Date().toISOString()
+          };
+          sendPartialYearScenario(analysisId, partialYearResult);
+          
+          // Update partial results in database
+          await updatePartialResults(analysisId, 'yearScenarios', partialYearResult);
+          
+          logPhaseComplete(analysisId, 2, `${targetYear}年 - シナリオ生成`);
+          logDebug(analysisId, `=== PARALLEL PROCESSING YEAR ${targetYear} END ===`);
+          
+          return { success: true, targetYear, scenarioContent };
+        } catch (error) {
+          const errorMsg = error instanceof Error ? error.message : String(error);
+          logError(analysisId, `Failed scenario generation for ${targetYear}年: ${errorMsg}`);
+          return { success: false, targetYear, error: errorMsg };
+        }
+      })
+    );
+    
+    // Execute all scenario generations with error resilience
+    const scenarioResults = await Promise.all(scenarioTasks);
+    
+    // Process results and handle errors
+    let successfulScenarios = 0;
+    const failedScenarios: string[] = [];
+    
+    for (const result of scenarioResults) {
+      if (result.success && result.scenarioContent) {
+        scenariosByYear.set(result.targetYear, result.scenarioContent);
+        successfulScenarios++;
+        logDebug(analysisId, `Added scenario for year ${result.targetYear}, content length: ${result.scenarioContent.length} chars`);
+      } else if (!result.success) {
+        failedScenarios.push(`${result.targetYear}年: ${result.error}`);
+        logError(analysisId, `Scenario generation failed for ${result.targetYear}年: ${result.error}`);
+      }
     }
     
-    logDebug(analysisId, `=== PHASE 2 SEQUENTIAL PROCESSING END ===`);
-    logDebug(analysisId, `Completed processing all ${targetYears.length} years, generated ${scenariosByYear.size} scenarios`);
+    logDebug(analysisId, `=== PHASE 2 SUMMARY ===`);
+    logDebug(analysisId, `PARALLEL processing completed - ${successfulScenarios} successful, ${failedScenarios.length} failed out of ${targetYears.length} years`);
+    if (failedScenarios.length > 0) {
+      logError(analysisId, `${failedScenarios.length} scenario generations failed, continuing with ${successfulScenarios} successful results`);
+    }
+    
+    // Update progress after all scenarios complete
+    currentStep += targetYears.length; // Add all year steps at once since they ran in parallel
+    await storage.updateAnalysis(analysisId, {
+      progress: String(Math.floor((currentStep / totalSteps) * 100)),
+      currentPhase: "3"
+    });
+    
+    logDebug(analysisId, `=== PHASE 2 PARALLEL PROCESSING END ===`);
+    logDebug(analysisId, `Completed PARALLEL processing all ${targetYears.length} years, generated ${scenariosByYear.size} scenarios`);
 
     // Phase 3: Long-term perspective analysis (once for all years)
     logPhaseStart(analysisId, 3, "超長期（2060年）からの戦略の見直し");
