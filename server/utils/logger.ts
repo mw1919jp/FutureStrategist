@@ -76,3 +76,19 @@ export function logPhaseComplete(analysisId: string, phase: number, phaseName: s
     message: `フェーズ ${phase} 完了: ${phaseName}`
   });
 }
+
+export function logError(analysisId: string, errorMessage: string) {
+  sendAnalysisLog(analysisId, {
+    phase: 0, // Generic error phase
+    action: 'error',
+    message: errorMessage
+  });
+}
+
+export function logDebug(analysisId: string, debugMessage: string) {
+  sendAnalysisLog(analysisId, {
+    phase: 0, // Debug phase
+    action: 'phase_complete', // Use phase_complete action to ensure visibility
+    message: `DEBUG: ${debugMessage}`
+  });
+}

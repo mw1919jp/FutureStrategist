@@ -4,7 +4,8 @@ import { storage } from "./storage";
 import { insertExpertSchema, insertScenarioSchema } from "@shared/schema";
 import { openAIService } from "./services/openai";
 import { registerSseRoute } from "./sse";
-import { logPhaseStart, logPhaseComplete } from "./utils/logger";
+import { logPhaseStart, logPhaseComplete, logError, logDebug } from "./utils/logger";
+import pLimit from "p-limit";
 import type { YearResult, PhaseResult, ExpertAnalysis, AnalysisResults } from "@shared/schema";
 
 export async function registerRoutes(app: Express): Promise<Server> {
@@ -207,38 +208,83 @@ async function processAnalysis(analysisId: string, scenario: any) {
     const totalSteps = 1 + targetYears.length + 3;
     let currentStep = 0;
     
-    // Phase 1: Parallel expert analysis (once for all years)
+    // Phase 1: Controlled parallel expert analysis (once for all years)
     logPhaseStart(analysisId, 1, "専門家による専門分野の調査（全年対応）");
     
-    // Create parallel analysis tasks for all experts and all years
-    const allAnalysisTasks: Promise<ExpertAnalysis & { targetYear: number }>[] = [];
+    // Create concurrency limit to avoid API rate limits
+    const limit = pLimit(4); // Allow up to 4 concurrent API calls
     
+    // Create controlled parallel analysis tasks for all experts and all years
+    const allAnalysisTasks: Promise<{ success: boolean; targetYear: number; analysis?: ExpertAnalysis; expert?: string; error?: string }>[] = [];
+    
+    // Generate tasks for each combination of expert and year
     for (const targetYear of targetYears) {
       for (const expert of experts) {
-        const task = openAIService.analyzeWithExpert(
-          expert.name,
-          expert.role,
-          scenario.theme,
-          scenario.currentStrategy,
-          targetYear,
-          analysisId
-        ).then(analysis => ({ ...analysis, targetYear }));
+        const task = limit(async () => {
+          try {
+            logDebug(analysisId, `Starting analysis for ${expert.name} (${targetYear}年)`);
+            const analysis = await openAIService.analyzeWithExpert(
+              expert.name,
+              expert.role,
+              scenario.theme,
+              scenario.currentStrategy,
+              targetYear,
+              analysisId
+            );
+            logDebug(analysisId, `Completed analysis for ${expert.name} (${targetYear}年)`);
+            return { success: true, targetYear, analysis };
+          } catch (error) {
+            logError(analysisId, `Failed analysis for ${expert.name} (${targetYear}年): ${error.message}`);
+            return { success: false, targetYear, expert: expert.name, error: error.message };
+          }
+        });
         allAnalysisTasks.push(task);
       }
     }
     
-    // Execute all expert analyses in parallel
+    logDebug(analysisId, `Created ${allAnalysisTasks.length} analysis tasks for ${experts.length} experts and ${targetYears.length} years`);
+    
+    // Execute all expert analyses with error resilience
     const allAnalysisResults = await Promise.all(allAnalysisTasks);
     
-    // Group analysis results by year
+    // Group successful analysis results by year and handle errors
     const expertAnalysesByYear = new Map<number, ExpertAnalysis[]>();
-    for (const result of allAnalysisResults) {
-      const { targetYear, ...analysis } = result;
-      if (!expertAnalysesByYear.has(targetYear)) {
-        expertAnalysesByYear.set(targetYear, []);
-      }
-      expertAnalysesByYear.get(targetYear)!.push(analysis);
+    const failedAnalyses: string[] = [];
+    let successCount = 0;
+    
+    // Initialize maps for all target years
+    for (const year of targetYears) {
+      expertAnalysesByYear.set(year, []);
     }
+    
+    for (const result of allAnalysisResults) {
+      if (result.success && result.analysis) {
+        expertAnalysesByYear.get(result.targetYear)!.push(result.analysis);
+        successCount++;
+        logDebug(analysisId, `Added analysis for year ${result.targetYear}, total for this year: ${expertAnalysesByYear.get(result.targetYear)!.length}`);
+      } else if (!result.success) {
+        failedAnalyses.push(`${result.expert} (${result.targetYear}年): ${result.error}`);
+        logError(analysisId, `Expert analysis failed for ${result.expert} (${result.targetYear}年): ${result.error}`);
+      }
+    }
+    
+    // === PHASE 1 COMPLETION SUMMARY ===
+    logDebug(analysisId, `=== PHASE 1 SUMMARY START ===`);
+    logDebug(analysisId, `Analysis completed - ${successCount} successful, ${failedAnalyses.length} failed out of ${allAnalysisTasks.length} total tasks`);
+    
+    // Debug: Log expert analyses grouping by year
+    for (const [year, analyses] of expertAnalysesByYear) {
+      logDebug(analysisId, `Final count - Year ${year} has ${analyses.length} expert analyses`);
+    }
+    
+    // Debug: Log target years for comparison
+    logDebug(analysisId, `Target years are: ${targetYears.join(', ')}`);
+    
+    // Log failed analyses but continue processing with available results
+    if (failedAnalyses.length > 0) {
+      logError(analysisId, `${failedAnalyses.length} expert analyses failed, continuing with ${successCount} successful results`);
+    }
+    logDebug(analysisId, `=== PHASE 1 SUMMARY END ===`);
     
     logPhaseComplete(analysisId, 1, "専門家による専門分野の調査（全年対応）");
     currentStep++;
@@ -250,10 +296,16 @@ async function processAnalysis(analysisId: string, scenario: any) {
     // Phase 2: Sequential scenario generation for each year (2030→2040→2050)
     const scenariosByYear = new Map<number, string>();
     
-    for (const targetYear of targetYears.sort()) {
+    logDebug(analysisId, `=== PHASE 2 SEQUENTIAL PROCESSING START ===`);
+    logDebug(analysisId, `About to process ${targetYears.length} years in sequence: ${targetYears.join(', ')}`);
+    
+    for (const targetYear of [...targetYears].sort((a, b) => a - b)) {
       logPhaseStart(analysisId, 2, `${targetYear}年 - シナリオ生成`);
+      logDebug(analysisId, `=== PROCESSING YEAR ${targetYear} START ===`);
       
       const expertAnalyses = expertAnalysesByYear.get(targetYear) || [];
+      logDebug(analysisId, `Processing year ${targetYear} with ${expertAnalyses.length} expert analyses`);
+      
       const scenarioContent = await openAIService.generateScenario(
         scenario.theme,
         scenario.currentStrategy,
@@ -263,14 +315,20 @@ async function processAnalysis(analysisId: string, scenario: any) {
       );
       
       scenariosByYear.set(targetYear, scenarioContent);
+      logDebug(analysisId, `Year ${targetYear} scenario generation completed, content length: ${scenarioContent.length} chars`);
       
       logPhaseComplete(analysisId, 2, `${targetYear}年 - シナリオ生成`);
+      logDebug(analysisId, `=== PROCESSING YEAR ${targetYear} END ===`);
+      
       currentStep++;
       await storage.updateAnalysis(analysisId, {
         progress: String(Math.floor((currentStep / totalSteps) * 100)),
         currentPhase: currentStep === 1 + targetYears.length ? "3" : "2"
       });
     }
+    
+    logDebug(analysisId, `=== PHASE 2 SEQUENTIAL PROCESSING END ===`);
+    logDebug(analysisId, `Completed processing all ${targetYears.length} years, generated ${scenariosByYear.size} scenarios`);
 
     // Phase 3: Long-term perspective analysis (once for all years)
     logPhaseStart(analysisId, 3, "超長期（2060年）からの戦略の見直し");
