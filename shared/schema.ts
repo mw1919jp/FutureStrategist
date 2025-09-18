@@ -32,6 +32,7 @@ export const analyses = pgTable("analyses", {
   progress: text("progress").notNull().default("0"), // percentage as string
   currentPhase: text("current_phase").notNull().default("1"),
   results: jsonb("results"), // stores the analysis results
+  partialResults: jsonb("partial_results").default('{"expertAnalyses":[],"yearScenarios":[],"phaseResults":[]}'), // stores partial results for progressive display
   markdownReport: text("markdown_report"),
   createdAt: timestamp("created_at").defaultNow(),
   updatedAt: timestamp("updated_at").defaultNow(),
@@ -83,4 +84,32 @@ export interface YearResult {
 export interface AnalysisResults {
   years: YearResult[];
   phases?: PhaseResult[]; // Backward compatibility
+}
+
+// Partial result types for progressive display
+export interface PartialExpertAnalysis {
+  expert: string;
+  year: number;
+  content: string;
+  recommendations: string[];
+  completedAt: string;
+}
+
+export interface PartialYearScenario {
+  year: number;
+  content: string;
+  completedAt: string;
+}
+
+export interface PartialPhaseResult {
+  phase: number;
+  title: string;
+  content: string;
+  completedAt: string;
+}
+
+export interface PartialResults {
+  expertAnalyses: PartialExpertAnalysis[];
+  yearScenarios: PartialYearScenario[];
+  phaseResults: PartialPhaseResult[];
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
-import { BarChart3, Terminal, Clock } from "lucide-react";
-import type { Analysis } from "@shared/schema";
+import { BarChart3, Terminal, Clock, User, Calendar, Lightbulb, CheckCircle } from "lucide-react";
+import type { Analysis, PartialExpertAnalysis, PartialYearScenario, PartialPhaseResult } from "@shared/schema";
 
 interface AnalysisLog {
   timestamp: string;
@@ -9,6 +9,12 @@ interface AnalysisLog {
   action: 'api_request' | 'api_response' | 'phase_start' | 'phase_complete' | 'error';
   message: string;
   data?: any;
+}
+
+interface PartialResults {
+  expertAnalyses: PartialExpertAnalysis[];
+  yearScenarios: PartialYearScenario[];
+  phaseResults: PartialPhaseResult[];
 }
 
 interface AnalysisProgressProps {
@@ -20,6 +26,11 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
   const isCompleted = analysis.status === "completed";
   const [logs, setLogs] = useState<AnalysisLog[]>([]);
   const [isConnected, setIsConnected] = useState(false);
+  const [partialResults, setPartialResults] = useState<PartialResults>({
+    expertAnalyses: [],
+    yearScenarios: [],
+    phaseResults: []
+  });
   const eventSourceRef = useRef<EventSource | null>(null);
 
   // SSE connection for real-time logs
@@ -42,6 +53,43 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
           console.error('Error parsing SSE message:', error);
         }
       };
+
+      // Add event listeners for partial results
+      eventSource.addEventListener('partial_expert_analysis', (event) => {
+        try {
+          const expertAnalysis = JSON.parse(event.data) as PartialExpertAnalysis;
+          setPartialResults(prev => ({
+            ...prev,
+            expertAnalyses: [...prev.expertAnalyses, expertAnalysis]
+          }));
+        } catch (error) {
+          console.error('Error parsing partial expert analysis:', error);
+        }
+      });
+
+      eventSource.addEventListener('partial_year_scenario', (event) => {
+        try {
+          const yearScenario = JSON.parse(event.data) as PartialYearScenario;
+          setPartialResults(prev => ({
+            ...prev,
+            yearScenarios: [...prev.yearScenarios, yearScenario]
+          }));
+        } catch (error) {
+          console.error('Error parsing partial year scenario:', error);
+        }
+      });
+
+      eventSource.addEventListener('partial_phase_result', (event) => {
+        try {
+          const phaseResult = JSON.parse(event.data) as PartialPhaseResult;
+          setPartialResults(prev => ({
+            ...prev,
+            phaseResults: [...prev.phaseResults, phaseResult]
+          }));
+        } catch (error) {
+          console.error('Error parsing partial phase result:', error);
+        }
+      });
 
       eventSource.onerror = () => {
         setIsConnected(false);
@@ -150,6 +198,69 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
           })}
         </div>
 
+        {/* Partial Results Display */}
+        {analysis.status === "running" && (partialResults.expertAnalyses.length > 0 || partialResults.yearScenarios.length > 0 || partialResults.phaseResults.length > 0) && (
+          <div className="mt-6 border-t border-border pt-6">
+            <div className="flex items-center space-x-3 mb-4">
+              <Lightbulb className="h-5 w-5 text-secondary" />
+              <h3 className="text-sm font-medium text-gray-900 dark:text-gray-100">リアルタイム分析結果</h3>
+              <div className="text-xs text-secondary bg-secondary/10 px-2 py-1 rounded">
+                {partialResults.expertAnalyses.length + partialResults.yearScenarios.length + partialResults.phaseResults.length} 件完了
+              </div>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Expert Analyses */}
+              {partialResults.expertAnalyses.length > 0 && (
+                <div className="bg-blue-50 dark:bg-blue-950/20 border border-blue-200 dark:border-blue-800 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <User className="h-4 w-4 text-blue-600" />
+                    <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100">専門家分析完了 ({partialResults.expertAnalyses.length}件)</h4>
+                  </div>
+                  <div className="grid gap-2">
+                    {partialResults.expertAnalyses.slice(-3).map((analysis, index) => (
+                      <div key={index} className="flex items-center justify-between text-xs bg-white dark:bg-gray-900 rounded p-2 border border-blue-100 dark:border-blue-900">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="font-medium">{analysis.expert}</span>
+                          <span className="text-gray-600 dark:text-gray-400">({analysis.year}年)</span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(analysis.completedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+              
+              {/* Year Scenarios */}
+              {partialResults.yearScenarios.length > 0 && (
+                <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-4">
+                  <div className="flex items-center space-x-2 mb-3">
+                    <Calendar className="h-4 w-4 text-green-600" />
+                    <h4 className="text-sm font-medium text-green-900 dark:text-green-100">年別シナリオ完了 ({partialResults.yearScenarios.length}件)</h4>
+                  </div>
+                  <div className="grid gap-2">
+                    {partialResults.yearScenarios.map((scenario, index) => (
+                      <div key={index} className="flex items-center justify-between text-xs bg-white dark:bg-gray-900 rounded p-2 border border-green-100 dark:border-green-900">
+                        <div className="flex items-center space-x-2">
+                          <CheckCircle className="h-3 w-3 text-green-600" />
+                          <span className="font-medium">{scenario.year}年シナリオ</span>
+                          <span className="text-gray-600 dark:text-gray-400">({Math.round(scenario.content.length / 1000)}k文字)</span>
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {new Date(scenario.completedAt).toLocaleTimeString('ja-JP', { hour: '2-digit', minute: '2-digit' })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+        
         {/* Real-time Analysis Logs */}
         {analysis.status === "running" && (
           <div className="mt-6 border-t border-border pt-6">

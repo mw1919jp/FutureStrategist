@@ -1,4 +1,5 @@
 import { Express, Response } from 'express';
+import type { PartialExpertAnalysis, PartialYearScenario, PartialPhaseResult } from '@shared/schema';
 
 // SSE connections map to track analysis sessions
 export const sseConnections = new Map<string, Response>();
@@ -43,4 +44,31 @@ export function registerSseRoute(app: Express) {
       res.end();
     });
   });
+}
+
+// Send partial expert analysis result
+export function sendPartialExpertAnalysis(analysisId: string, result: PartialExpertAnalysis) {
+  const connection = sseConnections.get(analysisId);
+  if (connection && !connection.destroyed) {
+    connection.write(`event: partial_expert_analysis\n`);
+    connection.write(`data: ${JSON.stringify(result)}\n\n`);
+  }
+}
+
+// Send partial year scenario result
+export function sendPartialYearScenario(analysisId: string, result: PartialYearScenario) {
+  const connection = sseConnections.get(analysisId);
+  if (connection && !connection.destroyed) {
+    connection.write(`event: partial_year_scenario\n`);
+    connection.write(`data: ${JSON.stringify(result)}\n\n`);
+  }
+}
+
+// Send partial phase result
+export function sendPartialPhaseResult(analysisId: string, result: PartialPhaseResult) {
+  const connection = sseConnections.get(analysisId);
+  if (connection && !connection.destroyed) {
+    connection.write(`event: partial_phase_result\n`);
+    connection.write(`data: ${JSON.stringify(result)}\n\n`);
+  }
 }

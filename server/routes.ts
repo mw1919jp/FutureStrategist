@@ -3,10 +3,37 @@ import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { insertExpertSchema, insertScenarioSchema } from "@shared/schema";
 import { openAIService } from "./services/openai";
-import { registerSseRoute } from "./sse";
+import { registerSseRoute, sendPartialExpertAnalysis, sendPartialYearScenario, sendPartialPhaseResult } from "./sse";
 import { logPhaseStart, logPhaseComplete, logError, logDebug } from "./utils/logger";
 import pLimit from "p-limit";
-import type { YearResult, PhaseResult, ExpertAnalysis, AnalysisResults } from "@shared/schema";
+import type { YearResult, PhaseResult, ExpertAnalysis, AnalysisResults, PartialResults, PartialExpertAnalysis, PartialYearScenario, PartialPhaseResult } from "@shared/schema";
+
+// Helper function to update partial results in database
+async function updatePartialResults(
+  analysisId: string,
+  type: 'expertAnalyses' | 'yearScenarios' | 'phaseResults',
+  result: PartialExpertAnalysis | PartialYearScenario | PartialPhaseResult
+) {
+  try {
+    const analysis = await storage.getAnalysis(analysisId);
+    if (!analysis) return;
+
+    const currentPartial = analysis.partialResults as PartialResults || {
+      expertAnalyses: [],
+      yearScenarios: [],
+      phaseResults: []
+    };
+
+    currentPartial[type].push(result as any);
+
+    await storage.updateAnalysis(analysisId, {
+      partialResults: currentPartial
+    });
+  } catch (error) {
+    const msg = error instanceof Error ? error.message : String(error);
+    console.error(`Failed to update partial results: ${msg}`);
+  }
+}
 
 export async function registerRoutes(app: Express): Promise<Server> {
   // Register SSE route for real-time analysis logs
@@ -232,10 +259,25 @@ async function processAnalysis(analysisId: string, scenario: any) {
               analysisId
             );
             logDebug(analysisId, `Completed analysis for ${expert.name} (${targetYear}年)`);
+            
+            // Send partial expert analysis result immediately
+            const partialResult: PartialExpertAnalysis = {
+              expert: expert.name,
+              year: targetYear,
+              content: analysis.content,
+              recommendations: analysis.recommendations,
+              completedAt: new Date().toISOString()
+            };
+            sendPartialExpertAnalysis(analysisId, partialResult);
+            
+            // Update partial results in database
+            await updatePartialResults(analysisId, 'expertAnalyses', partialResult);
+            
             return { success: true, targetYear, analysis };
           } catch (error) {
-            logError(analysisId, `Failed analysis for ${expert.name} (${targetYear}年): ${error.message}`);
-            return { success: false, targetYear, expert: expert.name, error: error.message };
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            logError(analysisId, `Failed analysis for ${expert.name} (${targetYear}年): ${errorMsg}`);
+            return { success: false, targetYear, expert: expert.name, error: errorMsg };
           }
         });
         allAnalysisTasks.push(task);
@@ -273,7 +315,8 @@ async function processAnalysis(analysisId: string, scenario: any) {
     logDebug(analysisId, `Analysis completed - ${successCount} successful, ${failedAnalyses.length} failed out of ${allAnalysisTasks.length} total tasks`);
     
     // Debug: Log expert analyses grouping by year
-    for (const [year, analyses] of expertAnalysesByYear) {
+    for (const year of Array.from(expertAnalysesByYear.keys())) {
+      const analyses = expertAnalysesByYear.get(year)!;
       logDebug(analysisId, `Final count - Year ${year} has ${analyses.length} expert analyses`);
     }
     
@@ -316,6 +359,17 @@ async function processAnalysis(analysisId: string, scenario: any) {
       
       scenariosByYear.set(targetYear, scenarioContent);
       logDebug(analysisId, `Year ${targetYear} scenario generation completed, content length: ${scenarioContent.length} chars`);
+      
+      // Send partial year scenario result immediately
+      const partialYearResult: PartialYearScenario = {
+        year: targetYear,
+        content: scenarioContent,
+        completedAt: new Date().toISOString()
+      };
+      sendPartialYearScenario(analysisId, partialYearResult);
+      
+      // Update partial results in database
+      await updatePartialResults(analysisId, 'yearScenarios', partialYearResult);
       
       logPhaseComplete(analysisId, 2, `${targetYear}年 - シナリオ生成`);
       logDebug(analysisId, `=== PROCESSING YEAR ${targetYear} END ===`);
