@@ -305,6 +305,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
               scenario.theme,
               scenario.currentStrategy,
               targetYear,
+              parseInt(scenario.characterCount || '1000'),
               analysisId
             );
             logDebug(analysisId, `Completed analysis for ${expert.name} (${targetYear}年)`);
@@ -406,6 +407,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
             scenario.currentStrategy,
             targetYear,
             expertAnalyses,
+            parseInt(scenario.characterCount || '1000'),
             analysisId
           );
           
@@ -476,6 +478,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       scenario.currentStrategy,
       longTermYear,
       Math.max(...targetYears),
+      parseInt(scenario.characterCount || '1000'),
       analysisId
     );
     

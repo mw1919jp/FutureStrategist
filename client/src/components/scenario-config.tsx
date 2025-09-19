@@ -4,7 +4,7 @@ import { Settings, Play } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
 
@@ -16,8 +16,7 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
   const [theme, setTheme] = useState("");
   const [currentStrategy, setCurrentStrategy] = useState("");
   const [targetYears, setTargetYears] = useState("");
-  const [agentCount, setAgentCount] = useState("3");
-  const [episodeCount, setEpisodeCount] = useState("20");
+  const [characterCount, setCharacterCount] = useState([1000]); // slider uses array format
   const { toast } = useToast();
 
   const startAnalysisMutation = useMutation({
@@ -27,8 +26,7 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
         theme,
         currentStrategy,
         targetYears: targetYears.split(',').map(year => parseInt(year.trim())),
-        agentCount,
-        episodeCount,
+        characterCount: characterCount[0].toString(),
       });
       
       const scenario = await scenarioResponse.json();
@@ -121,34 +119,23 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
           />
         </div>
 
-        {/* Agent and Episode Count */}
-        <div className="flex space-x-4">
-          <div className="flex-1 space-y-2">
-            <label className="text-sm font-medium text-foreground">エージェント数</label>
-            <Select value={agentCount} onValueChange={setAgentCount}>
-              <SelectTrigger data-testid="select-agent-count">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="3">3</SelectItem>
-                <SelectItem value="4">4</SelectItem>
-                <SelectItem value="5">5</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="flex-1 space-y-2">
-            <label className="text-sm font-medium text-foreground">エピソード数</label>
-            <Select value={episodeCount} onValueChange={setEpisodeCount}>
-              <SelectTrigger data-testid="select-episode-count">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="20">20</SelectItem>
-                <SelectItem value="30">30</SelectItem>
-              </SelectContent>
-            </Select>
+        {/* Character Count Slider */}
+        <div className="space-y-2">
+          <label className="text-sm font-medium text-foreground">
+            調査結果の文字数: {characterCount[0]}文字
+          </label>
+          <Slider
+            value={characterCount}
+            onValueChange={setCharacterCount}
+            min={500}
+            max={2500}
+            step={100}
+            className="w-full"
+            data-testid="slider-character-count"
+          />
+          <div className="flex justify-between text-xs text-muted-foreground">
+            <span>500文字</span>
+            <span>2500文字</span>
           </div>
         </div>
       </div>

@@ -626,6 +626,7 @@ export class OpenAIService {
     theme: string, 
     currentStrategy: string, 
     targetYear: number,
+    characterCount: number = 1000,
     analysisId?: string
   ): Promise<ExpertAnalysis> {
     try {
@@ -666,10 +667,10 @@ ${expertName}の視点から、${targetYear}年における上記テーマの影
 
 JSON形式で以下の構造で回答してください:
 {
-  "analysis": "上記マークダウン形式の構造化された分析内容（600-800文字程度）",
+  "analysis": "上記マークダウン形式の構造化された分析内容（約${characterCount}文字）",
   "recommendations": ["短期的施策1", "中期的施策1", "長期的施策1"]
 }`;
-
+      
       if (analysisId) {
         logApiRequest(analysisId, 1, `専門家分析: ${expertName}`, prompt);
       }
@@ -710,6 +711,7 @@ JSON形式で以下の構造で回答してください:
     currentStrategy: string,
     targetYear: number,
     expertAnalyses: ExpertAnalysis[],
+    characterCount: number = 1000,
     analysisId?: string
   ): Promise<string> {
     try {
@@ -760,7 +762,7 @@ ${expertSummary}
 
 JSON形式で以下の構造で回答してください:
 {
-  "scenario": "上記マークダウン形式の構造化されたシナリオ（800-1000文字程度）"
+  "scenario": "上記マークダウン形式の構造化されたシナリオ（約${characterCount}文字）"
 }`;
 
       if (analysisId) {
@@ -794,6 +796,7 @@ JSON形式で以下の構造で回答してください:
     currentStrategy: string,
     longTermYear: number,
     nearTermYear: number,
+    characterCount: number = 1000,
     analysisId?: string
   ): Promise<string> {
     try {
@@ -840,7 +843,7 @@ ${longTermYear}年から振り返って、${nearTermYear}年時点で重要に�
 
 JSON形式で以下の構造で回答してください:
 {
-  "perspective": "上記マークダウン形式の構造化された長期視点分析（700-900文字程度）",
+  "perspective": "上記マークダウン形式の構造化された長期視点分析（約${characterCount}文字）",
   "key_factors": ["技術・イノベーション要因", "市場・競争要因", "社会・環境要因"],
   "strategic_actions": ["基盤構築施策", "能力開発施策", "ポジション確立施策"]
 }`;

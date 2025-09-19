@@ -77,8 +77,7 @@ export class PostgreSQLStorage implements IStorage {
   async createScenario(insertScenario: InsertScenario): Promise<Scenario> {
     const scenarioData = {
       ...insertScenario,
-      agentCount: insertScenario.agentCount || "3",
-      episodeCount: insertScenario.episodeCount || "20",
+      characterCount: insertScenario.characterCount || "1000",
     };
     const [scenario] = await db.insert(scenarios).values(scenarioData).returning();
     return scenario;
