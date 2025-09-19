@@ -13,9 +13,9 @@ interface ScenarioConfigProps {
 }
 
 export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps) {
-  const [theme, setTheme] = useState("AI技術活用による市場開拓");
-  const [currentStrategy, setCurrentStrategy] = useState("DXを活用した顧客満足度向上とパーソナライゼーション");
-  const [targetYears, setTargetYears] = useState("2030,2040,2050");
+  const [theme, setTheme] = useState("");
+  const [currentStrategy, setCurrentStrategy] = useState("");
+  const [targetYears, setTargetYears] = useState("");
   const [agentCount, setAgentCount] = useState("3");
   const [episodeCount, setEpisodeCount] = useState("20");
   const { toast } = useToast();
@@ -90,7 +90,7 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
           <Textarea
             value={theme}
             onChange={(e) => setTheme(e.target.value)}
-            placeholder="例：持続可能な社会実現"
+            placeholder="AI技術活用による市場開拓"
             className="resize-none"
             rows={3}
             data-testid="input-theme"
@@ -103,7 +103,7 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
           <Textarea
             value={currentStrategy}
             onChange={(e) => setCurrentStrategy(e.target.value)}
-            placeholder="例：サステナビリティと競争力強化"
+            placeholder="DXを主導した顧客満足度向上とパーソナライゼーション"
             className="resize-none"
             rows={3}
             data-testid="input-strategy"
