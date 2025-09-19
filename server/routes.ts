@@ -469,9 +469,8 @@ async function processAnalysis(analysisId: string, scenario: any) {
     logDebug(analysisId, `Completed PARALLEL processing all ${targetYears.length} years, generated ${scenariosByYear.size} scenarios`);
 
     // Phase 3: Long-term perspective analysis (once for all years)
-    logPhaseStart(analysisId, 3, "超長期（2060年）からの戦略の見直し");
-    
     const longTermYear = Math.max(...targetYears) + 10; // Use the furthest target year + 10
+    logPhaseStart(analysisId, 3, `超長期（${longTermYear}年）からの戦略の見直し`);
     const longTermPerspective = await openAIService.generateLongTermPerspective(
       scenario.theme,
       scenario.currentStrategy,
@@ -480,7 +479,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       analysisId
     );
     
-    logPhaseComplete(analysisId, 3, "超長期（2060年）からの戦略の見直し");
+    logPhaseComplete(analysisId, 3, `超長期（${longTermYear}年）からの戦略の見直し`);
     currentStep++;
     await storage.updateAnalysis(analysisId, {
       progress: String(Math.floor((currentStep / totalSteps) * 100)),
