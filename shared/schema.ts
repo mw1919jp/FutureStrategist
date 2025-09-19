@@ -20,8 +20,7 @@ export const scenarios = pgTable("scenarios", {
   theme: text("theme").notNull(),
   currentStrategy: text("current_strategy").notNull(),
   targetYears: jsonb("target_years").notNull(), // array of years like [2030, 2040, 2050]
-  agentCount: text("agent_count").notNull().default("3"),
-  episodeCount: text("episode_count").notNull().default("20"),
+  characterCount: text("character_count").notNull().default("1000"), // character limit for analysis (500-2500)
   createdAt: timestamp("created_at").defaultNow(),
 });
 
