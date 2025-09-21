@@ -60,7 +60,25 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
       return;
     }
 
-    const years = targetYears.split(',').map(year => year.trim());
+    if (!targetYears.trim()) {
+      toast({
+        title: "入力エラー",
+        description: "未来年を入力してください（例：2030,2040,2050）。",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const years = targetYears.split(',').map(year => year.trim()).filter(year => year !== '');
+    if (years.length === 0) {
+      toast({
+        title: "入力エラー",
+        description: "未来年を入力してください（例：2030,2040,2050）。",
+        variant: "destructive",
+      });
+      return;
+    }
+
     if (years.some(year => isNaN(Number(year)))) {
       toast({
         title: "入力エラー",
