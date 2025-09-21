@@ -209,6 +209,23 @@ const expertFallbackTemplates: Record<string, ExpertPrediction> = {
   }
 };
 
+/**
+ * Enforce character count limit with proper Unicode handling
+ * @param content The content to limit
+ * @param limit Maximum character count
+ * @returns Content trimmed to limit with ellipsis if necessary
+ */
+function enforceCharacterLimit(content: string, limit: number): string {
+  if (!content) return content;
+  
+  // Use Array.from for proper Unicode character counting (handles emojis, Japanese characters)
+  const chars = Array.from(content);
+  if (chars.length <= limit) return content;
+  
+  // Trim with ellipsis
+  return chars.slice(0, limit - 3).join('') + '...';
+}
+
 export class OpenAIService {
   // Cache management methods
   private getCachedPrediction(expertName: string): ExpertPrediction | null {
@@ -667,9 +684,11 @@ ${expertName}の視点から、${targetYear}年における上記テーマの影
 
 JSON形式で以下の構造で回答してください:
 {
-  "analysis": "上記マークダウン形式の構造化された分析内容（約${characterCount}文字）",
+  "analysis": "上記マークダウン形式の構造化された分析内容（厳密に${characterCount}文字以内）",
   "recommendations": ["短期的施策1", "中期的施策1", "長期的施策1"]
-}`;
+}
+
+**重要:** analysis フィールドは必ず${characterCount}文字以内で収めてください。文字数を超過した場合は、重要度の低い部分を削除して調整してください。`;
       
       if (analysisId) {
         logApiRequest(analysisId, 1, `専門家分析: ${expertName}`, prompt);
@@ -690,7 +709,7 @@ JSON形式で以下の構造で回答してください:
       
       return {
         expert: expertName,
-        content: result.analysis || "分析結果を取得できませんでした。",
+        content: enforceCharacterLimit(result.analysis || "分析結果を取得できませんでした。", characterCount),
         recommendations: result.recommendations || [],
       };
     } catch (error) {
@@ -781,7 +800,7 @@ JSON形式で以下の構造で回答してください:
       }
 
       const result = JSON.parse(responseContent);
-      return result.scenario || "シナリオの生成に失敗しました。";
+      return enforceCharacterLimit(result.scenario || "シナリオの生成に失敗しました。", characterCount);
     } catch (error) {
       console.error("Scenario generation error:", error);
       if (analysisId) {
@@ -864,7 +883,7 @@ JSON形式で以下の構造で回答してください:
       }
 
       const result = JSON.parse(responseContent);
-      return result.perspective || "長期的視点の分析に失敗しました。";
+      return enforceCharacterLimit(result.perspective || "長期的視点の分析に失敗しました。", characterCount);
     } catch (error) {
       console.error("Long-term perspective error:", error);
       if (analysisId) {
@@ -953,7 +972,7 @@ JSON形式で以下の構造で回答してください:
       }
 
       const result = JSON.parse(responseContent);
-      return result.evaluation || JSON.stringify(result);
+      return enforceCharacterLimit(result.evaluation || JSON.stringify(result), characterCount);
     } catch (error) {
       console.error("Strategic alignment evaluation error:", error);
       if (analysisId) {
@@ -1051,7 +1070,7 @@ JSON形式で以下の構造で回答してください:
       }
 
       const result = JSON.parse(responseContent);
-      return result.final_scenario || "最終シミュレーションの生成に失敗しました。";
+      return enforceCharacterLimit(result.final_scenario || "最終シミュレーションの生成に失敗しました。", characterCount);
     } catch (error) {
       console.error("Final simulation error:", error);
       if (analysisId) {
