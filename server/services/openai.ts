@@ -879,6 +879,7 @@ JSON形式で以下の構造で回答してください:
     currentStrategy: string,
     targetYear: number,
     scenarios: string[],
+    characterCount: number = 1000,
     analysisId?: string
   ): Promise<string> {
     try {
@@ -895,8 +896,41 @@ ${scenarioSummary}
 
 現在の経営戦略がこれらのシナリオにどの程度適合しているか、また戦略修正の必要性について評価してください。
 
+**以下の構造化されたマークダウン形式で回答してください:**
+
+## 戦略整合性スコア
+現在の経営戦略の適合度: **X/10点**（理由を2-3文で説明）
+
+## 強み・機会分析
+**活かすべき強み:**
+- 現在の戦略の優位性
+- 将来への適応可能性
+
+**獲得できる機会:**
+- 新興市場・技術への対応
+- 競合他社への差別化要因
+
+## 課題・リスク分析
+**改善すべき課題:**
+- 戦略上の脆弱性
+- 対応が遅れる可能性
+
+**回避すべきリスク:**
+- 将来の脅威要因
+- 戦略ミスマッチのリスク
+
+## 戦略修正提案
+**優先度1（即座に着手）:**
+1. 基盤強化施策
+2. リスク軽減措置
+
+**優先度2（中期的改善）:**
+1. 能力拡張施策
+2.新機会獲得施策
+
 JSON形式で以下の構造で回答してください:
 {
+  "evaluation": "上記マークダウン形式の構造化された戦略整合性評価（約${characterCount}文字）",
   "alignment_score": "1-10のスコア",
   "strengths": ["強み・機会1", "強み・機会2", "強み・機会3"],
   "weaknesses": ["課題・リスク1", "課題・リスク2", "課題・リスク3"],
@@ -919,7 +953,7 @@ JSON形式で以下の構造で回答してください:
       }
 
       const result = JSON.parse(responseContent);
-      return JSON.stringify(result);
+      return result.evaluation || JSON.stringify(result);
     } catch (error) {
       console.error("Strategic alignment evaluation error:", error);
       if (analysisId) {
@@ -939,6 +973,7 @@ JSON形式で以下の構造で回答してください:
     currentStrategy: string,
     targetYear: number,
     allAnalyses: string[],
+    characterCount: number = 1000,
     analysisId?: string
   ): Promise<string> {
     try {
@@ -955,9 +990,46 @@ ${analysisSummary}
 
 上記の全分析を統合し、最も実現可能性の高い未来シナリオと、企業が取るべき具体的な戦略を提示してください。
 
+**以下の構造化されたマークダウン形式で回答してください:**
+
+## 最終統合シナリオ
+**${targetYear}年の実現可能性の高い未来予測**（分析結果を踏まえた総合的なシナリオを3-4文で要約）
+
+## 戦略的優先事項
+**最重要施策（Priority 1）:**
+1. **基盤強化:** 競争優位の土台作り
+2. **能力拡張:** 新しいケイパビリティ構築
+3. **ポジション確立:** 市場での地位向上
+
+**重要施策（Priority 2）:**
+- 補完的施策・リスク対応
+- 機会活用のための準備
+
+## 成功要因分析
+**内部要因:**
+- 組織・人材の要件
+- 技術・システムの要件
+
+**外部要因:**
+- 市場・顧客の変化対応
+- 競合・パートナーとの関係
+
+## 実装ロードマップ
+**短期実装（1-2年）:**
+1. 基盤整備の完了
+2. 重要投資の実行
+
+**中期実装（3-5年）:**
+1. 競争優位性の確立
+2. 新市場・事業の展開
+
+**長期実装（${targetYear}年まで）:**
+1. 業界リーダーポジション獲得
+2. 持続可能性の確保
+
 JSON形式で以下の構造で回答してください:
 {
-  "final_scenario": "最終統合シナリオ（800文字程度）",
+  "final_scenario": "上記マークダウン形式の構造化された最終統合シナリオ（約${characterCount}文字）",
   "strategic_priorities": ["優先戦略1", "優先戦略2", "優先戦略3"],
   "success_factors": ["成功要因1", "成功要因2", "成功要因3"],
   "implementation_steps": ["実装ステップ1", "実装ステップ2", "実装ステップ3"]
