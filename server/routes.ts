@@ -543,7 +543,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
         },
         {
           phase: 3,
-          title: "超長期（2060年）からの戦略の見直し",
+          title: `超長期（${longTermYear}年）からの戦略の見直し`,
           content: longTermPerspective
         },
         {

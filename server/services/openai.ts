@@ -210,6 +210,43 @@ const expertFallbackTemplates: Record<string, ExpertPrediction> = {
 };
 
 /**
+ * Remove HTML tags and convert to markdown equivalents
+ * @param content The content to sanitize
+ * @returns Content with HTML tags converted or removed
+ */
+function sanitizeHtmlToMarkdown(content: string): string {
+  if (!content) return content;
+  
+  return content
+    // Convert HTML strong tags to markdown bold
+    .replace(/<strong[^>]*>(.*?)<\/strong>/gi, '**$1**')
+    // Convert HTML em tags to markdown italic
+    .replace(/<em[^>]*>(.*?)<\/em>/gi, '*$1*')
+    // Convert HTML h1-h6 tags to markdown headers
+    .replace(/<h([1-6])[^>]*>(.*?)<\/h[1-6]>/gi, (match, level, text) => {
+      const hashes = '#'.repeat(parseInt(level));
+      return `${hashes} ${text}`;
+    })
+    // Convert HTML ul/li to markdown lists
+    .replace(/<ul[^>]*>/gi, '')
+    .replace(/<\/ul>/gi, '')
+    .replace(/<li[^>]*>(.*?)<\/li>/gi, '- $1')
+    // Convert HTML ol/li to markdown numbered lists
+    .replace(/<ol[^>]*>/gi, '')
+    .replace(/<\/ol>/gi, '')
+    // Convert HTML br tags to line breaks
+    .replace(/<br\s*\/?>/gi, '\n')
+    // Convert HTML p tags to paragraphs
+    .replace(/<p[^>]*>/gi, '')
+    .replace(/<\/p>/gi, '\n\n')
+    // Remove any remaining HTML tags
+    .replace(/<[^>]*>/g, '')
+    // Clean up multiple line breaks
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
+/**
  * Enforce character count limit with proper Unicode handling
  * @param content The content to limit
  * @param limit Maximum character count
@@ -217,6 +254,9 @@ const expertFallbackTemplates: Record<string, ExpertPrediction> = {
  */
 function enforceCharacterLimit(content: string, limit: number): string {
   if (!content) return content;
+  
+  // First sanitize HTML tags to markdown
+  content = sanitizeHtmlToMarkdown(content);
   
   // Use Array.from for proper Unicode character counting (handles emojis, Japanese characters)
   const chars = Array.from(content);
@@ -688,7 +728,10 @@ JSON形式で以下の構造で回答してください:
   "recommendations": ["短期的施策1", "中期的施策1", "長期的施策1"]
 }
 
-**重要:** analysis フィールドは必ず${characterCount}文字以内で収めてください。文字数を超過した場合は、重要度の低い部分を削除して調整してください。`;
+**重要:** 
+- analysis フィールドは必ず${characterCount}文字以内で収めてください
+- HTMLタグ（<strong>、<em>、<p>等）は使用せず、マークダウン記法（**太字**、*斜体*）のみを使用してください
+- 文字数を超過した場合は、重要度の低い部分を削除して調整してください`;
       
       if (analysisId) {
         logApiRequest(analysisId, 1, `専門家分析: ${expertName}`, prompt);
@@ -781,8 +824,10 @@ ${expertSummary}
 
 JSON形式で以下の構造で回答してください:
 {
-  "scenario": "上記マークダウン形式の構造化されたシナリオ（約${characterCount}文字）"
-}`;
+  "scenario": "上記マークダウン形式の構造化されたシナリオ（厳密に${characterCount}文字以内）"
+}
+
+**重要:** HTMLタグは使用せず、マークダウン記法のみを使用してください。`;
 
       if (analysisId) {
         logApiRequest(analysisId, 2, "シナリオ生成", prompt);
@@ -862,10 +907,12 @@ ${longTermYear}年から振り返って、${nearTermYear}年時点で重要に�
 
 JSON形式で以下の構造で回答してください:
 {
-  "perspective": "上記マークダウン形式の構造化された長期視点分析（約${characterCount}文字）",
+  "perspective": "上記マークダウン形式の構造化された長期視点分析（厳密に${characterCount}文字以内）",
   "key_factors": ["技術・イノベーション要因", "市場・競争要因", "社会・環境要因"],
   "strategic_actions": ["基盤構築施策", "能力開発施策", "ポジション確立施策"]
-}`;
+}
+
+**重要:** HTMLタグは使用せず、マークダウン記法のみを使用してください。`;
 
       if (analysisId) {
         logApiRequest(analysisId, 3, "長期視点分析", prompt);
@@ -949,12 +996,14 @@ ${scenarioSummary}
 
 JSON形式で以下の構造で回答してください:
 {
-  "evaluation": "上記マークダウン形式の構造化された戦略整合性評価（約${characterCount}文字）",
+  "evaluation": "上記マークダウン形式の構造化された戦略整合性評価（厳密に${characterCount}文字以内）",
   "alignment_score": "1-10のスコア",
   "strengths": ["強み・機会1", "強み・機会2", "強み・機会3"],
   "weaknesses": ["課題・リスク1", "課題・リスク2", "課題・リスク3"],
   "recommendations": ["推奨事項1", "推奨事項2", "推奨事項3"]
-}`;
+}
+
+**重要:** HTMLタグは使用せず、マークダウン記法のみを使用してください。`;
 
       if (analysisId) {
         logApiRequest(analysisId, 4, "戦略整合性評価", prompt);
@@ -1048,11 +1097,13 @@ ${analysisSummary}
 
 JSON形式で以下の構造で回答してください:
 {
-  "final_scenario": "上記マークダウン形式の構造化された最終統合シナリオ（約${characterCount}文字）",
+  "final_scenario": "上記マークダウン形式の構造化された最終統合シナリオ（厳密に${characterCount}文字以内）",
   "strategic_priorities": ["優先戦略1", "優先戦略2", "優先戦略3"],
   "success_factors": ["成功要因1", "成功要因2", "成功要因3"],
   "implementation_steps": ["実装ステップ1", "実装ステップ2", "実装ステップ3"]
-}`;
+}
+
+**重要:** HTMLタグは使用せず、マークダウン記法のみを使用してください。`;
 
       if (analysisId) {
         logApiRequest(analysisId, 5, "最終シミュレーション", prompt);
