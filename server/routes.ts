@@ -179,7 +179,10 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
 
       // Start async analysis process
-      processAnalysis(analysis.id, scenario).catch(console.error);
+      console.log(`[DEBUG] About to start processAnalysis for ${analysis.id}`);
+      processAnalysis(analysis.id, scenario).catch((error) => {
+        console.error(`[ERROR] processAnalysis failed for ${analysis.id}:`, error);
+      });
 
       res.json({ analysisId: analysis.id, status: "started" });
     } catch (error) {
@@ -196,6 +199,23 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(analysis);
     } catch (error) {
       res.status(500).json({ message: "Failed to fetch analysis" });
+    }
+  });
+
+  app.post("/api/analysis/:id/stop", async (req, res) => {
+    try {
+      const analysisId = req.params.id;
+      console.log(`[DEBUG] Stopping analysis ${analysisId}`);
+      
+      await storage.updateAnalysis(analysisId, {
+        status: "stopped",
+        progress: "0"
+      });
+      
+      res.json({ message: "Analysis stopped successfully" });
+    } catch (error) {
+      console.error(`[ERROR] Failed to stop analysis ${req.params.id}:`, error);
+      res.status(500).json({ message: "Failed to stop analysis" });
     }
   });
 
@@ -268,9 +288,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
 }
 
 async function processAnalysis(analysisId: string, scenario: any) {
+  console.log(`[DEBUG] processAnalysis started for ${analysisId}`);
   try {
     const targetYears = scenario.targetYears as number[];
+    console.log(`[DEBUG] Target years: ${JSON.stringify(targetYears)}`);
     const experts = await storage.getExperts();
+    console.log(`[DEBUG] Found ${experts.length} experts`);
     const yearResults: YearResult[] = [];
     
     // Update to running status
@@ -285,6 +308,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
     let currentStep = 0;
     
     // Phase 1: Controlled parallel expert analysis (once for all years)
+    console.log(`[DEBUG] Starting Phase 1 for analysis ${analysisId}`);
     logPhaseStart(analysisId, 1, "専門家による専門分野の調査（全年対応）");
     
     // Create concurrency limit to avoid API rate limits
@@ -472,6 +496,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
 
     // Phase 3: Long-term perspective analysis (once for all years)
     const longTermYear = Math.max(...targetYears) + 10; // Use the furthest target year + 10
+    console.log(`[DEBUG] Starting Phase 3 for analysis ${analysisId}, longTermYear: ${longTermYear}`);
     logPhaseStart(analysisId, 3, `超長期（${longTermYear}年）からの戦略の見直し`);
     const longTermPerspective = await openAIService.generateLongTermPerspective(
       scenario.theme,
@@ -481,6 +506,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       parseInt(scenario.characterCount || '1000'),
       analysisId
     );
+    console.log(`[DEBUG] Phase 3 completed for analysis ${analysisId}, result: ${longTermPerspective?.substring(0, 100)}...`);
     
     logPhaseComplete(analysisId, 3, `超長期（${longTermYear}年）からの戦略の見直し`);
     currentStep++;

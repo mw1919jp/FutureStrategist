@@ -26,12 +26,33 @@ export default function Home() {
     });
   };
 
-  const handleStopAnalysis = () => {
-    setCurrentAnalysisId(null);
-    toast({
-      title: "分析停止",
-      description: "分析を停止しました。",
-    });
+  const handleStopAnalysis = async () => {
+    if (!currentAnalysisId) return;
+    
+    try {
+      const response = await fetch(`/api/analysis/${currentAnalysisId}/stop`, {
+        method: 'POST',
+      });
+      
+      if (response.ok) {
+        setCurrentAnalysisId(null);
+        toast({
+          title: "分析停止",
+          description: "分析を停止しました。",
+        });
+      } else {
+        throw new Error('Failed to stop analysis');
+      }
+    } catch (error) {
+      console.error('Failed to stop analysis:', error);
+      // Still reset local state to prevent UI issues
+      setCurrentAnalysisId(null);
+      toast({
+        title: "分析停止",
+        description: "分析を停止しました。",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleDownloadReport = async () => {
