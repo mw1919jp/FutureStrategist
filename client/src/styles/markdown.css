@@ -1,0 +1,76 @@
+/* Enhanced markdown styles for analysis results */
+.markdown-content {
+  @apply text-sm leading-relaxed;
+}
+
+.markdown-content h2 {
+  @apply text-lg font-bold text-gray-900 dark:text-gray-100 mt-6 mb-3 border-b border-gray-200 dark:border-gray-700 pb-2;
+}
+
+.markdown-content h3 {
+  @apply text-base font-semibold text-gray-900 dark:text-gray-100 mt-4 mb-2;
+}
+
+.markdown-content p {
+  @apply text-sm text-gray-800 dark:text-gray-200 leading-relaxed mb-3;
+}
+
+.markdown-content strong {
+  @apply font-semibold text-gray-900 dark:text-gray-100 bg-blue-50 dark:bg-blue-900/30 px-1 py-0.5 rounded;
+}
+
+.markdown-content ul {
+  @apply space-y-1 mb-4 ml-2;
+}
+
+.markdown-content li {
+  @apply ml-4 text-sm text-gray-700 dark:text-gray-300 leading-relaxed relative;
+}
+
+.markdown-content li::before {
+  content: "•";
+  @apply absolute -left-4 text-primary font-bold;
+}
+
+/* Enhanced visual elements for better readability */
+.markdown-content h2::before {
+  content: "🎯";
+  @apply mr-2;
+}
+
+.markdown-content h3::before {
+  content: "📌";
+  @apply mr-2;
+}
+
+/* Highlight important text patterns */
+.markdown-content strong:contains("重要") {
+  @apply bg-red-50 dark:bg-red-900/30 text-red-700 dark:text-red-300;
+}
+
+.markdown-content strong:contains("推奨") {
+  @apply bg-green-50 dark:bg-green-900/30 text-green-700 dark:text-green-300;
+}
+
+.markdown-content strong:contains("リスク") {
+  @apply bg-yellow-50 dark:bg-yellow-900/30 text-yellow-700 dark:text-yellow-300;
+}
+
+.markdown-content strong:contains("機会") {
+  @apply bg-purple-50 dark:bg-purple-900/30 text-purple-700 dark:text-purple-300;
+}
+
+/* Better spacing and visual hierarchy */
+.markdown-content > *:first-child {
+  @apply mt-0;
+}
+
+.markdown-content > *:last-child {
+  @apply mb-0;
+}
+
+/* Improved list styling */
+.markdown-content ul li:hover {
+  @apply bg-gray-50 dark:bg-gray-800/50 rounded px-2 py-1 -mx-2;
+  transition: background-color 0.15s ease;
+}

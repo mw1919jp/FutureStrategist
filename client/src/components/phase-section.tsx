@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { parseMarkdownToHtml } from "@/lib/markdown-parser";
 
 interface PhaseAnalysis {
   expert: string;
@@ -91,9 +92,11 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
         <div className="space-y-4">
           {/* Phase content */}
           {phase.content && !strategicAlignment && (
-            <div className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed" data-testid={`text-phase-content-${phaseNumber}`}>
-              {phase.content}
-            </div>
+            <div 
+              className="markdown-content prose-sm max-w-none" 
+              data-testid={`text-phase-content-${phaseNumber}`}
+              dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(phase.content) }}
+            />
           )}
 
           {/* Expert analyses for Phase 1 */}
@@ -108,9 +111,11 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
                   <h4 className="font-medium text-primary mb-2" data-testid={`text-expert-name-${phaseNumber}-${index}`}>
                     🧠 {analysis.expert}
                   </h4>
-                  <p className="text-sm text-slate-700 dark:text-slate-200 leading-relaxed" data-testid={`text-expert-analysis-${phaseNumber}-${index}`}>
-                    {analysis.content}
-                  </p>
+                  <div 
+                    className="markdown-content prose-sm max-w-none" 
+                    data-testid={`text-expert-analysis-${phaseNumber}-${index}`}
+                    dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(analysis.content) }}
+                  />
                   {analysis.recommendations && analysis.recommendations.length > 0 && (
                     <div className="mt-3">
                       <h5 className="text-xs font-medium text-primary mb-1">推奨事項:</h5>
