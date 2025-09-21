@@ -25,7 +25,7 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
       const scenarioResponse = await apiRequest("POST", "/api/scenarios", {
         theme,
         currentStrategy,
-        targetYears: targetYears.split(',').map(year => parseInt(year.trim())),
+        targetYears: targetYears.split(',').map(year => year.trim()).filter(year => year !== '').map(year => parseInt(year)),
         characterCount: characterCount[0].toString(),
       });
       
@@ -128,7 +128,9 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
 
         {/* Year Selection */}
         <div className="space-y-2">
-          <label className="text-sm font-medium text-foreground">未来年（カンマ区切り）</label>
+          <label className="text-sm font-medium text-foreground">
+            未来年（カンマ区切り）<span className="text-red-500 ml-1">*</span>
+          </label>
           <Input
             value={targetYears}
             onChange={(e) => setTargetYears(e.target.value)}
