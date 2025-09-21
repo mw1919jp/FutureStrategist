@@ -74,21 +74,6 @@ export default function ModelConfig({ selectedModel, onModelChange }: ModelConfi
             コストと品質のバランスを考慮してモデルを選択してください
           </p>
         </div>
-        
-        {/* Current model info */}
-        <div className="bg-muted rounded-lg p-3 border border-border">
-          <div className="flex items-center justify-between mb-1">
-            <span className="text-sm font-medium text-foreground" data-testid="text-current-model">
-              現在のモデル
-            </span>
-            <span className="text-xs text-muted-foreground" data-testid="text-current-cost">
-              {getCostIndicator(selectedModel)}
-            </span>
-          </div>
-          <p className="text-sm text-foreground" data-testid="text-current-model-name">
-            {getModelDisplayName(selectedModel)}
-          </p>
-        </div>
       </div>
     </div>
   );

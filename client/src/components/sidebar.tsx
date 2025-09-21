@@ -29,14 +29,14 @@ export default function Sidebar({ onAnalysisStart }: SidebarProps) {
 
       {/* Sidebar Content */}
       <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-8">
-        <ModelConfig 
-          selectedModel={selectedModel} 
-          onModelChange={setSelectedModel} 
-        />
         <ExpertConfig />
         <ScenarioConfig 
           onAnalysisStart={onAnalysisStart} 
           selectedModel={selectedModel}
+        />
+        <ModelConfig 
+          selectedModel={selectedModel} 
+          onModelChange={setSelectedModel} 
         />
       </div>
     </aside>
