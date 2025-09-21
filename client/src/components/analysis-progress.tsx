@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import { BarChart3, Terminal, Clock, User, Calendar, Lightbulb, CheckCircle } from "lucide-react";
 import type { Analysis, PartialExpertAnalysis, PartialYearScenario, PartialPhaseResult } from "@shared/schema";
+import { parseMarkdownToHtml } from "@/lib/markdown-parser";
 
 interface AnalysisLog {
   timestamp: string;
@@ -234,11 +235,16 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                         
                         {/* Content Preview */}
                         <div className="text-sm space-y-2">
-                          <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                            {analysis.content.length > 200 
-                              ? `${analysis.content.substring(0, 200)}...` 
-                              : analysis.content}
-                          </div>
+                          <div 
+                            className="markdown-content prose-sm max-w-none text-gray-700 dark:text-gray-300 leading-relaxed"
+                            dangerouslySetInnerHTML={{ 
+                              __html: parseMarkdownToHtml(
+                                analysis.content.length > 200 
+                                  ? `${analysis.content.substring(0, 200)}...` 
+                                  : analysis.content
+                              ) 
+                            }}
+                          />
                           {analysis.recommendations && analysis.recommendations.length > 0 && (
                             <div>
                               <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">主要な推奨事項:</div>
@@ -290,11 +296,16 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                         
                         {/* Content Preview */}
                         <div className="text-sm space-y-2">
-                          <div className="text-gray-700 dark:text-gray-300 leading-relaxed">
-                            {scenario.content.length > 300 
-                              ? `${scenario.content.substring(0, 300)}...` 
-                              : scenario.content}
-                          </div>
+                          <div 
+                            className="markdown-content prose-sm max-w-none text-gray-700 dark:text-gray-300 leading-relaxed"
+                            dangerouslySetInnerHTML={{ 
+                              __html: parseMarkdownToHtml(
+                                scenario.content.length > 300 
+                                  ? `${scenario.content.substring(0, 300)}...` 
+                                  : scenario.content
+                              ) 
+                            }}
+                          />
                           <div className="text-xs text-blue-600 dark:text-blue-400 italic">
                             完全な内容は分析完了後にご覧いただけます
                           </div>
