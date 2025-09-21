@@ -3,6 +3,17 @@ import { pgTable, text, varchar, jsonb, timestamp, boolean } from "drizzle-orm/p
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
+// LLM Model selection types
+export const LLM_MODELS = [
+  "gpt-4o-mini",
+  "gpt-5-nano", 
+  "gpt-5-mini",
+  "gpt-5"
+] as const;
+
+export type LLMModel = typeof LLM_MODELS[number];
+export const DEFAULT_LLM_MODEL: LLMModel = "gpt-4o-mini";
+
 export const experts = pgTable("experts", {
   id: varchar("id").primaryKey().default(sql`gen_random_uuid()`),
   name: text("name").notNull(),
@@ -21,6 +32,7 @@ export const scenarios = pgTable("scenarios", {
   currentStrategy: text("current_strategy").notNull(),
   targetYears: jsonb("target_years").notNull(), // array of years like [2030, 2040, 2050]
   characterCount: text("character_count").notNull().default("1000"), // character limit for analysis (500-2500)
+  model: text("model").notNull().default("gpt-4o-mini"), // LLM model selection
   createdAt: timestamp("created_at").defaultNow(),
 });
 

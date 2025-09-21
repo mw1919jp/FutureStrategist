@@ -1,12 +1,17 @@
+import { useState } from "react";
 import ExpertConfig from "@/components/expert-config";
 import ScenarioConfig from "@/components/scenario-config";
+import ModelConfig from "@/components/model-config";
 import { Brain } from "lucide-react";
+import { DEFAULT_LLM_MODEL, type LLMModel } from "@shared/schema";
 
 interface SidebarProps {
   onAnalysisStart: (analysisId: string) => void;
 }
 
 export default function Sidebar({ onAnalysisStart }: SidebarProps) {
+  const [selectedModel, setSelectedModel] = useState<LLMModel>(DEFAULT_LLM_MODEL);
+
   return (
     <aside className="w-80 bg-card border-r border-border flex flex-col" data-testid="sidebar">
       {/* Logo and Header */}
@@ -24,8 +29,15 @@ export default function Sidebar({ onAnalysisStart }: SidebarProps) {
 
       {/* Sidebar Content */}
       <div className="flex-1 overflow-y-auto scrollbar-hide p-6 space-y-8">
+        <ModelConfig 
+          selectedModel={selectedModel} 
+          onModelChange={setSelectedModel} 
+        />
         <ExpertConfig />
-        <ScenarioConfig onAnalysisStart={onAnalysisStart} />
+        <ScenarioConfig 
+          onAnalysisStart={onAnalysisStart} 
+          selectedModel={selectedModel}
+        />
       </div>
     </aside>
   );

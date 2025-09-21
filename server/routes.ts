@@ -343,6 +343,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
               scenario.currentStrategy,
               targetYear,
               parseInt(scenario.characterCount || '1000'),
+              scenario.model || 'gpt-4o-mini',
               analysisId
             );
             logDebug(analysisId, `Completed analysis for ${expert.name} (${targetYear}年)`);
@@ -453,6 +454,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
             targetYear,
             expertAnalyses,
             parseInt(scenario.characterCount || '1000'),
+            scenario.model || 'gpt-4o-mini',
             analysisId
           );
           
@@ -532,6 +534,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       longTermYear,
       Math.max(...targetYears),
       parseInt(scenario.characterCount || '1000'),
+      scenario.model || 'gpt-4o-mini',
       analysisId
     );
     console.log(`[DEBUG] Phase 3 completed for analysis ${analysisId}, result: ${longTermPerspective?.substring(0, 100)}...`);
@@ -560,6 +563,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       Math.max(...targetYears), // Use the furthest target year
       [...allScenarios, longTermPerspective],
       parseInt(scenario.characterCount || '1000'),
+      scenario.model || 'gpt-4o-mini',
       analysisId
     );
     
@@ -579,6 +583,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       Math.max(...targetYears),
       [...allScenarios, longTermPerspective, strategicAlignment],
       parseInt(scenario.characterCount || '1000'),
+      scenario.model || 'gpt-4o-mini',
       analysisId
     );
     

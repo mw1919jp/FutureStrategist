@@ -684,6 +684,7 @@ export class OpenAIService {
     currentStrategy: string, 
     targetYear: number,
     characterCount: number = 1000,
+    model: string,
     analysisId?: string
   ): Promise<ExpertAnalysis> {
     try {
@@ -738,7 +739,7 @@ JSON形式で以下の構造で回答してください:
       }
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: model,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
@@ -774,6 +775,7 @@ JSON形式で以下の構造で回答してください:
     targetYear: number,
     expertAnalyses: ExpertAnalysis[],
     characterCount: number = 1000,
+    model: string,
     analysisId?: string
   ): Promise<string> {
     try {
@@ -834,7 +836,7 @@ JSON形式で以下の構造で回答してください:
       }
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: model,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
@@ -861,6 +863,7 @@ JSON形式で以下の構造で回答してください:
     longTermYear: number,
     nearTermYear: number,
     characterCount: number = 1000,
+    model: string,
     analysisId?: string
   ): Promise<string> {
     try {
@@ -919,7 +922,7 @@ JSON形式で以下の構造で回答してください:
       }
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: model,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
@@ -946,6 +949,7 @@ JSON形式で以下の構造で回答してください:
     targetYear: number,
     scenarios: string[],
     characterCount: number = 1000,
+    model: string,
     analysisId?: string
   ): Promise<string> {
     try {
@@ -1010,7 +1014,7 @@ JSON形式で以下の構造で回答してください:
       }
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: model,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });
@@ -1042,6 +1046,7 @@ JSON形式で以下の構造で回答してください:
     targetYear: number,
     allAnalyses: string[],
     characterCount: number = 1000,
+    model: string,
     analysisId?: string
   ): Promise<string> {
     try {
@@ -1110,7 +1115,7 @@ JSON形式で以下の構造で回答してください:
       }
       
       const response = await openai.chat.completions.create({
-        model: "gpt-5",
+        model: model,
         messages: [{ role: "user", content: prompt }],
         response_format: { type: "json_object" },
       });

@@ -7,12 +7,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { Slider } from "@/components/ui/slider";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import type { LLMModel } from "@shared/schema";
 
 interface ScenarioConfigProps {
   onAnalysisStart: (analysisId: string) => void;
+  selectedModel: LLMModel;
 }
 
-export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps) {
+export default function ScenarioConfig({ onAnalysisStart, selectedModel }: ScenarioConfigProps) {
   const [theme, setTheme] = useState("");
   const [currentStrategy, setCurrentStrategy] = useState("");
   const [targetYears, setTargetYears] = useState("");
@@ -27,6 +29,7 @@ export default function ScenarioConfig({ onAnalysisStart }: ScenarioConfigProps)
         currentStrategy,
         targetYears: targetYears.split(',').map(year => year.trim()).filter(year => year !== '').map(year => parseInt(year)),
         characterCount: characterCount[0].toString(),
+        model: selectedModel,
       });
       
       const scenario = await scenarioResponse.json();
