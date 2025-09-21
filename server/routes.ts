@@ -498,6 +498,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       scenario.currentStrategy,
       Math.max(...targetYears), // Use the furthest target year
       [...allScenarios, longTermPerspective],
+      parseInt(scenario.characterCount || '1000'),
       analysisId
     );
     
@@ -516,6 +517,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
       scenario.currentStrategy,
       Math.max(...targetYears),
       [...allScenarios, longTermPerspective, strategicAlignment],
+      parseInt(scenario.characterCount || '1000'),
       analysisId
     );
     
