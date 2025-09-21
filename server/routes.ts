@@ -287,6 +287,12 @@ export async function registerRoutes(app: Express): Promise<Server> {
   return httpServer;
 }
 
+// Helper function to check if analysis was stopped
+async function checkIfStopped(analysisId: string): Promise<boolean> {
+  const analysis = await storage.getAnalysis(analysisId);
+  return analysis?.status === "stopped";
+}
+
 async function processAnalysis(analysisId: string, scenario: any) {
   console.log(`[DEBUG] processAnalysis started for ${analysisId}`);
   try {
@@ -309,6 +315,13 @@ async function processAnalysis(analysisId: string, scenario: any) {
     
     // Phase 1: Controlled parallel expert analysis (once for all years)
     console.log(`[DEBUG] Starting Phase 1 for analysis ${analysisId}`);
+    
+    // Check if stopped before starting Phase 1
+    if (await checkIfStopped(analysisId)) {
+      console.log(`[DEBUG] Analysis ${analysisId} was stopped, exiting`);
+      return;
+    }
+    
     logPhaseStart(analysisId, 1, "専門家による専門分野の調査（全年対応）");
     
     // Create concurrency limit to avoid API rate limits
@@ -405,10 +418,18 @@ async function processAnalysis(analysisId: string, scenario: any) {
     
     logPhaseComplete(analysisId, 1, "専門家による専門分野の調査（全年対応）");
     currentStep++;
+    
+    // Check if stopped after Phase 1
+    if (await checkIfStopped(analysisId)) {
+      console.log(`[DEBUG] Analysis ${analysisId} was stopped after Phase 1`);
+      return;
+    }
+    
     await storage.updateAnalysis(analysisId, {
       progress: String(Math.floor((currentStep / totalSteps) * 100)),
       currentPhase: "2"
     });
+    console.log(`[DEBUG] Phase 1 completed, progress: ${Math.floor((currentStep / totalSteps) * 100)}%`);
 
     // Phase 2: PARALLEL scenario generation for all years (2030 | 2040 | 2050 simultaneously)
     const scenariosByYear = new Map<number, string>();
@@ -497,6 +518,13 @@ async function processAnalysis(analysisId: string, scenario: any) {
     // Phase 3: Long-term perspective analysis (once for all years)
     const longTermYear = Math.max(...targetYears) + 10; // Use the furthest target year + 10
     console.log(`[DEBUG] Starting Phase 3 for analysis ${analysisId}, longTermYear: ${longTermYear}`);
+    
+    // Check if stopped before Phase 3
+    if (await checkIfStopped(analysisId)) {
+      console.log(`[DEBUG] Analysis ${analysisId} was stopped before Phase 3`);
+      return;
+    }
+    
     logPhaseStart(analysisId, 3, `超長期（${longTermYear}年）からの戦略の見直し`);
     const longTermPerspective = await openAIService.generateLongTermPerspective(
       scenario.theme,
@@ -508,12 +536,19 @@ async function processAnalysis(analysisId: string, scenario: any) {
     );
     console.log(`[DEBUG] Phase 3 completed for analysis ${analysisId}, result: ${longTermPerspective?.substring(0, 100)}...`);
     
+    // Check if stopped after Phase 3
+    if (await checkIfStopped(analysisId)) {
+      console.log(`[DEBUG] Analysis ${analysisId} was stopped after Phase 3`);
+      return;
+    }
+    
     logPhaseComplete(analysisId, 3, `超長期（${longTermYear}年）からの戦略の見直し`);
     currentStep++;
     await storage.updateAnalysis(analysisId, {
       progress: String(Math.floor((currentStep / totalSteps) * 100)),
       currentPhase: "4"
     });
+    console.log(`[DEBUG] Phase 3 completed, progress: ${Math.floor((currentStep / totalSteps) * 100)}%`);
 
     // Phase 4: Strategic alignment evaluation (once for all scenarios)
     logPhaseStart(analysisId, 4, "戦略整合性評価");
