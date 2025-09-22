@@ -161,17 +161,9 @@ html.dark .phase-section * {
 }
 
 /* CRITICAL: Maximum specificity for reasoning process contrast */
-html.dark body [data-testid*="step-details-"],
-html.dark body [data-testid*="step-details-"] *,
-html.dark body [data-testid*="step-reasoning-"],
-html.dark body [data-testid*="step-reasoning-"] *,
-html.dark body [data-testid*="step-conclusion-"],
-html.dark body [data-testid*="step-conclusion-"] * {
+html.dark body [data-testid*="step-details-"] {
   color: rgb(255 255 255) !important;
-  background-color: rgba(17, 24, 39, 0.9) !important; /* Darker background for maximum contrast */
-  padding: 0.5rem !important;
-  border-radius: 0.25rem !important;
-  border: 2px solid rgba(59, 130, 246, 0.5) !important; /* More visible border */
+  background-color: rgba(17, 24, 39, 0.3) !important;
 }
 
 /* CRITICAL: Step titles and descriptions with maximum visibility */
@@ -277,46 +269,37 @@ html.dark body div textarea::placeholder {
   font-weight: 300 !important; 
 }
 
-/* FINAL: Individual reasoning step elements with maximum specificity */
-html.dark body div[data-testid="step-title-1"],
-html.dark body div[data-testid="step-title-2"], 
-html.dark body div[data-testid="step-title-3"],
-html.dark body div[data-testid="step-title-4"],
-html.dark body div[data-testid="step-description-1"],
-html.dark body div[data-testid="step-description-2"],
-html.dark body div[data-testid="step-description-3"],
-html.dark body div[data-testid="step-description-4"] {
-  color: rgb(255 255 255) !important;
-  background-color: rgba(17, 24, 39, 0.9) !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
-  padding: 0.5rem !important;
-  border-radius: 0.375rem !important;
-  border: 2px solid rgba(59, 130, 246, 0.6) !important;
-  margin: 0.25rem 0 !important;
+/* SIMPLIFIED: Step containers with subtle borders */
+html.dark body div[data-testid*="step-details-"] {
+  background-color: rgba(17, 24, 39, 0.3) !important;
+  border-radius: 0.5rem !important;
+  margin-top: 0.5rem !important;
+  border-left: 3px solid rgba(59, 130, 246, 0.8) !important;
 }
 
-/* FINAL: Step toggle buttons with maximum contrast */
+/* SIMPLIFIED: Step toggle buttons with minimal styling */
 html.dark body button[data-testid*="button-toggle-step-"] {
   color: rgb(255 255 255) !important;
-  background-color: rgba(17, 24, 39, 0.9) !important;
-  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
-  border: 2px solid rgba(59, 130, 246, 0.6) !important;
+  background-color: rgba(31, 41, 55, 0.7) !important;
+  border: none !important;
   border-radius: 0.5rem !important;
+  margin-bottom: 0.25rem !important;
 }
 
 html.dark body button[data-testid*="button-toggle-step-"]:hover {
-  background-color: rgba(17, 24, 39, 0.95) !important;
-  border-color: rgba(59, 130, 246, 0.8) !important;
+  background-color: rgba(31, 41, 55, 0.9) !important;
 }
 
-/* FINAL: Reasoning content areas */
+/* SIMPLIFIED: Individual content sections with clean styling */
 html.dark body div[data-testid*="step-reasoning-"],
-html.dark body div[data-testid*="step-conclusion-"],
-html.dark body div[data-testid="final-conclusion-content"] {
+html.dark body div[data-testid*="step-conclusion-"] {
   color: rgb(255 255 255) !important;
-  background-color: rgba(17, 24, 39, 0.95) !important;
+  background-color: rgba(17, 24, 39, 0.6) !important;
   padding: 0.75rem !important;
-  border-radius: 0.5rem !important;
-  border: 2px solid rgba(59, 130, 246, 0.7) !important;
+  border-radius: 0.375rem !important;
+  border-top: none !important;
+  border-right: none !important;
+  border-bottom: none !important;
+  border-left: 2px solid rgba(59, 130, 246, 0.5) !important;
   margin: 0.5rem 0 !important;
 }

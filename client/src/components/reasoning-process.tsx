@@ -73,7 +73,7 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
             {/* Reasoning Steps */}
             <div className="space-y-2">
               {reasoningProcess.steps.map((step, index) => (
-                <div key={step.id} className="border border-gray-200 dark:border-gray-700 rounded-lg">
+                <div key={step.id} className="rounded-lg overflow-hidden">
                   <Button
                     variant="ghost"
                     onClick={() => toggleStep(step.id)}
@@ -110,7 +110,7 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
                   </Button>
 
                   {expandedSteps.has(step.id) && (
-                    <div className="px-3 pb-3 border-t border-gray-100 dark:border-gray-800" data-testid={`step-details-${step.stepNumber}`}>
+                    <div className="px-3 pb-3" data-testid={`step-details-${step.stepNumber}`}>
                       <div className="pt-3 space-y-3">
                         <div>
                           <div className="flex items-center space-x-1 mb-2">
