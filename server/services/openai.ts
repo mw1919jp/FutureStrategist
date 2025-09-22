@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { logApiRequest, logApiResponse } from "../utils/logger";
-import type { YearResult, ReasoningStep, ExpertReasoningProcess } from "@shared/schema";
+import type { YearResult, ReasoningStep, ExpertReasoningProcess, EvidenceSupport } from "@shared/schema";
+import { evidenceSupportSchema } from "@shared/schema";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -265,6 +266,31 @@ function enforceCharacterLimit(content: string, limit: number): string {
   
   // Trim with ellipsis
   return chars.slice(0, limit - 3).join('') + '...';
+}
+
+// Evidence support validation function
+function validateEvidenceSupport(evidenceData: any): EvidenceSupport | undefined {
+  try {
+    // Use Zod to validate and sanitize the evidence support data
+    const validated = evidenceSupportSchema.parse(evidenceData);
+    return validated;
+  } catch (error) {
+    console.warn("Evidence support validation failed:", error);
+    // Return a safe fallback structure instead of undefined
+    return {
+      dataSources: [],
+      statisticalEvidence: [],
+      researchPapers: [],
+      quality: {
+        overallRating: 3,
+        dataRecency: 3,
+        sourceReliability: 3,
+        limitations: ["データ検証に問題が発生しました"],
+        strengths: []
+      },
+      summaryStatement: "根拠情報の検証中にエラーが発生しました。"
+    };
+  }
 }
 
 export class OpenAIService {
@@ -961,19 +987,7 @@ JSON形式で以下の構造で回答してください:
             conclusion: step.conclusion || "",
             confidence: step.confidence || 50,
             sources: step.sources || [],
-            evidenceSupport: step.evidenceSupport ? {
-              dataSources: step.evidenceSupport.dataSources || [],
-              statisticalEvidence: step.evidenceSupport.statisticalEvidence || [],
-              researchPapers: step.evidenceSupport.researchPapers || [],
-              quality: step.evidenceSupport.quality || {
-                overallRating: 3,
-                dataRecency: 3,
-                sourceReliability: 3,
-                limitations: [],
-                strengths: []
-              },
-              summaryStatement: step.evidenceSupport.summaryStatement || ""
-            } : undefined,
+            evidenceSupport: step.evidenceSupport ? validateEvidenceSupport(step.evidenceSupport) : undefined,
             timestamp: new Date().toISOString()
           })),
           finalConclusion: result.reasoningProcess.finalConclusion || "",

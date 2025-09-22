@@ -72,6 +72,67 @@ export type InsertScenario = z.infer<typeof insertScenarioSchema>;
 export type Analysis = typeof analyses.$inferSelect;
 export type InsertAnalysis = z.infer<typeof insertAnalysisSchema>;
 
+// Zod validation schemas for evidence support
+export const dataSourceSchema = z.object({
+  name: z.string(),
+  type: z.enum(['government', 'research', 'industry', 'academic', 'survey', 'report', 'database']),
+  credibilityRating: z.number().min(1).max(5),
+  url: z.string().optional(),
+  datePublished: z.string().optional(),
+  organization: z.string().optional(),
+});
+
+export const statisticalEvidenceSchema = z.object({
+  metric: z.string(),
+  value: z.union([z.string(), z.number()]),
+  unit: z.string().optional(),
+  trend: z.enum(['increasing', 'decreasing', 'stable', 'volatile']).optional(),
+  timeframe: z.string(),
+  source: z.string(),
+  confidenceLevel: z.number().min(0).max(100).optional(),
+});
+
+export const researchPaperSchema = z.object({
+  title: z.string(),
+  authors: z.array(z.string()),
+  journal: z.string().optional(),
+  year: z.number(),
+  doi: z.string().optional(),
+  url: z.string().optional(),
+  relevanceScore: z.number().min(1).max(5),
+  keyFindings: z.array(z.string()),
+});
+
+export const evidenceQualitySchema = z.object({
+  overallRating: z.number().min(1).max(5),
+  dataRecency: z.number().min(1).max(5),
+  sourceReliability: z.number().min(1).max(5),
+  sampleSize: z.string().optional(),
+  limitations: z.array(z.string()),
+  strengths: z.array(z.string()),
+});
+
+export const evidenceSupportSchema = z.object({
+  dataSources: z.array(dataSourceSchema),
+  statisticalEvidence: z.array(statisticalEvidenceSchema),
+  researchPapers: z.array(researchPaperSchema),
+  quality: evidenceQualitySchema,
+  summaryStatement: z.string(),
+});
+
+export const reasoningStepSchema = z.object({
+  id: z.string(),
+  stepNumber: z.number(),
+  title: z.string(),
+  description: z.string(),
+  reasoning: z.string(),
+  conclusion: z.string(),
+  confidence: z.number().min(0).max(100),
+  sources: z.array(z.string()).optional(),
+  evidenceSupport: evidenceSupportSchema.optional(),
+  timestamp: z.string(),
+});
+
 // Analysis result types for multi-year support
 export interface ExpertAnalysis {
   expert: string;
