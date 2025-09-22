@@ -115,52 +115,38 @@
   border-left-color: hsl(200, 100%, 50%); 
 }
 
-/* High contrast text for reasoning process in dark theme */
-.dark [data-testid="reasoning-process-card"] * {
-  --tw-text-opacity: 1;
-}
-
-/* Reasoning title */
-.dark [data-testid="reasoning-title"] {
+/* CRITICAL: Force white text for all analysis content in dark theme */
+html.dark * {
   color: rgb(255 255 255) !important;
 }
 
-/* Step titles */
-.dark [data-testid*="step-title-"] {
+/* Override only for specific colored elements that should remain colored */
+html.dark .text-primary,
+html.dark .text-secondary,
+html.dark .text-accent,
+html.dark .text-destructive,
+html.dark .text-green-600,
+html.dark .text-yellow-600,
+html.dark .text-red-600,
+html.dark .text-blue-600,
+html.dark .text-purple-500,
+html.dark .bg-primary,
+html.dark .bg-secondary,
+html.dark .bg-accent,
+html.dark .bg-destructive {
+  color: unset !important;
+}
+
+/* Specific high-contrast overrides for reasoning elements */
+html.dark [data-testid="reasoning-process-card"] *,
+html.dark .reasoning-process *,
+html.dark [data-testid*="analysis-card"] *,
+html.dark .phase-section * {
   color: rgb(255 255 255) !important;
 }
 
-/* Step descriptions */
-.dark [data-testid*="step-description-"] {
-  color: rgb(229 231 235) !important;
-}
-
-/* Step reasoning content */
-.dark [data-testid*="step-reasoning-"] {
-  color: rgb(255 255 255) !important;
-}
-
-/* Step conclusions */
-.dark [data-testid*="step-conclusion-"] {
-  color: rgb(255 255 255) !important;
-}
-
-/* All text within reasoning process cards */
-.dark [data-testid="reasoning-process-card"] h4,
-.dark [data-testid="reasoning-process-card"] p,
-.dark [data-testid="reasoning-process-card"] span,
-.dark [data-testid="reasoning-process-card"] div {
-  color: rgb(255 255 255) !important;
-}
-
-/* Override button text colors specifically */
-.dark [data-testid="reasoning-process-card"] button div,
-.dark [data-testid="reasoning-process-card"] button span {
-  color: rgb(255 255 255) !important;
-}
-
-/* Final catch-all for any remaining elements */
-.dark .reasoning-process,
-.dark .reasoning-process * {
+/* Ensure markdown content is visible */
+html.dark .markdown-content *,
+html.dark .prose * {
   color: rgb(255 255 255) !important;
 }
