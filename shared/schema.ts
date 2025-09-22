@@ -127,6 +127,54 @@ export interface PartialResults {
   phaseResults: PartialPhaseResult[];
 }
 
+// Evidence types for transparency
+export interface DataSource {
+  name: string;
+  type: 'government' | 'research' | 'industry' | 'academic' | 'survey' | 'report' | 'database';
+  credibilityRating: number; // 1-5 scale
+  url?: string;
+  datePublished?: string;
+  organization?: string;
+}
+
+export interface StatisticalEvidence {
+  metric: string;
+  value: string | number;
+  unit?: string;
+  trend?: 'increasing' | 'decreasing' | 'stable' | 'volatile';
+  timeframe: string;
+  source: string;
+  confidenceLevel?: number; // percentage
+}
+
+export interface ResearchPaper {
+  title: string;
+  authors: string[];
+  journal?: string;
+  year: number;
+  doi?: string;
+  url?: string;
+  relevanceScore: number; // 1-5 scale
+  keyFindings: string[];
+}
+
+export interface EvidenceQuality {
+  overallRating: number; // 1-5 scale
+  dataRecency: number; // 1-5 scale (how recent is the data)
+  sourceReliability: number; // 1-5 scale
+  sampleSize?: string;
+  limitations: string[];
+  strengths: string[];
+}
+
+export interface EvidenceSupport {
+  dataSources: DataSource[];
+  statisticalEvidence: StatisticalEvidence[];
+  researchPapers: ResearchPaper[];
+  quality: EvidenceQuality;
+  summaryStatement: string;
+}
+
 // Reasoning process types for thought visualization
 export interface ReasoningStep {
   id: string;
@@ -136,7 +184,8 @@ export interface ReasoningStep {
   reasoning: string;
   conclusion: string;
   confidence: number; // 0-100
-  sources?: string[];
+  sources?: string[]; // Keep for backward compatibility
+  evidenceSupport?: EvidenceSupport; // New detailed evidence
   timestamp: string;
 }
 
