@@ -104,6 +104,7 @@ export interface PartialExpertAnalysis {
   year: number;
   content: string;
   recommendations: string[];
+  reasoningProcess?: ExpertReasoningProcess;
   completedAt: string;
 }
 

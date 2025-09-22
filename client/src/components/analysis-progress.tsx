@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { BarChart3, Terminal, Clock, User, Calendar, Lightbulb, CheckCircle } from "lucide-react";
 import type { Analysis, PartialExpertAnalysis, PartialYearScenario, PartialPhaseResult } from "@shared/schema";
 import { parseMarkdownToHtml } from "@/lib/markdown-parser";
+import ReasoningProcess from "./reasoning-process";
 
 interface AnalysisLog {
   timestamp: string;
@@ -245,6 +246,17 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                               ) 
                             }}
                           />
+                          
+                          {/* Show reasoning process if available */}
+                          {analysis.reasoningProcess && (
+                            <div className="mt-4">
+                              <ReasoningProcess 
+                                reasoningProcess={analysis.reasoningProcess} 
+                                data-testid={`analysis-card-${index}-reasoning`}
+                              />
+                            </div>
+                          )}
+                          
                           {analysis.recommendations && analysis.recommendations.length > 0 && (
                             <div>
                               <div className="text-xs font-medium text-blue-700 dark:text-blue-300 mb-1">主要な推奨事項:</div>

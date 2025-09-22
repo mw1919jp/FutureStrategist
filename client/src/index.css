@@ -120,6 +120,13 @@ html.dark * {
   color: rgb(255 255 255) !important;
 }
 
+/* Exception: Input placeholders should be light gray to distinguish from actual input values */
+html.dark input::placeholder,
+html.dark textarea::placeholder {
+  color: rgb(156 163 175) !important; /* gray-400 */
+  opacity: 0.8;
+}
+
 /* Override only for specific colored elements that should remain colored */
 html.dark .text-primary,
 html.dark .text-secondary,
@@ -145,8 +152,63 @@ html.dark .phase-section * {
   color: rgb(255 255 255) !important;
 }
 
-/* Ensure markdown content is visible */
-html.dark .markdown-content *,
-html.dark .prose * {
+/* Enhanced contrast for markdown content */
+html.dark .markdown-content h1,
+html.dark .markdown-content h2,
+html.dark .markdown-content h3,
+html.dark .markdown-content h4,
+html.dark .markdown-content h5,
+html.dark .markdown-content h6 {
   color: rgb(255 255 255) !important;
+  background-color: rgba(59 130 246 / 0.1) !important; /* subtle blue background */
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+  border-left: 3px solid rgb(59 130 246) !important;
+}
+
+html.dark .markdown-content p {
+  color: rgb(229 231 235) !important; /* gray-200 for better readability */
+}
+
+html.dark .markdown-content strong {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(59 130 246 / 0.2) !important;
+  padding: 0.125rem 0.25rem !important;
+  border-radius: 0.125rem !important;
+}
+
+html.dark .markdown-content li {
+  color: rgb(229 231 235) !important;
+}
+
+html.dark .markdown-content ul li::before {
+  color: rgb(59 130 246) !important; /* blue bullet points */
+}
+
+/* Phase section content enhancement */
+html.dark .phase-section h2,
+html.dark .phase-section h3 {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(59 130 246 / 0.1) !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+  border-left: 3px solid rgb(59 130 246) !important;
+}
+
+html.dark .phase-section p {
+  color: rgb(229 231 235) !important;
+}
+
+/* Analysis card content enhancement */
+html.dark [data-testid*="analysis-card"] h2,
+html.dark [data-testid*="analysis-card"] h3 {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(59 130 246 / 0.1) !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+  border-left: 3px solid rgb(59 130 246) !important;
+}
+
+html.dark [data-testid*="analysis-card"] p {
+  color: rgb(229 231 235) !important;
 }

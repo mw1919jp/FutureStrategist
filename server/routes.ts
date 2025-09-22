@@ -354,6 +354,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
               year: targetYear,
               content: analysis.content,
               recommendations: analysis.recommendations,
+              reasoningProcess: analysis.reasoningProcess,
               completedAt: new Date().toISOString()
             };
             sendPartialExpertAnalysis(analysisId, partialResult);
