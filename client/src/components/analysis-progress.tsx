@@ -236,7 +236,7 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                         {/* Content Preview */}
                         <div className="text-sm space-y-2">
                           <div 
-                            className="markdown-content prose-sm max-w-none text-gray-700 dark:text-gray-300 leading-relaxed"
+                            className="markdown-content prose-sm max-w-none text-gray-900 dark:text-gray-100 leading-relaxed"
                             dangerouslySetInnerHTML={{ 
                               __html: parseMarkdownToHtml(
                                 analysis.content.length > 200 
@@ -297,7 +297,7 @@ export default function AnalysisProgress({ analysis }: AnalysisProgressProps) {
                         {/* Content Preview */}
                         <div className="text-sm space-y-2">
                           <div 
-                            className="markdown-content prose-sm max-w-none text-gray-700 dark:text-gray-300 leading-relaxed"
+                            className="markdown-content prose-sm max-w-none text-gray-900 dark:text-gray-100 leading-relaxed"
                             dangerouslySetInnerHTML={{ 
                               __html: parseMarkdownToHtml(
                                 scenario.content.length > 300 

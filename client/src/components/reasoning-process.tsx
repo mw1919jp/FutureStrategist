@@ -77,7 +77,7 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
                   <Button
                     variant="ghost"
                     onClick={() => toggleStep(step.id)}
-                    className="w-full justify-between p-3 h-auto text-left font-normal"
+                    className="w-full justify-between p-3 h-auto text-left font-normal hover:bg-gray-50 dark:hover:bg-gray-800/50"
                     data-testid={`button-toggle-step-${step.stepNumber}`}
                   >
                     <div className="flex items-center space-x-3">
@@ -85,10 +85,10 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
                         {step.stepNumber}
                       </div>
                       <div className="flex-1">
-                        <div className="font-medium text-sm text-gray-900 dark:text-gray-100" data-testid={`step-title-${step.stepNumber}`}>
+                        <div className="font-medium text-sm text-gray-900 dark:text-white" data-testid={`step-title-${step.stepNumber}`}>
                           {step.title}
                         </div>
-                        <div className="text-xs text-gray-600 dark:text-gray-400 mt-1" data-testid={`step-description-${step.stepNumber}`}>
+                        <div className="text-xs text-gray-700 dark:text-gray-200 mt-1" data-testid={`step-description-${step.stepNumber}`}>
                           {step.description}
                         </div>
                       </div>
@@ -103,9 +103,9 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
                       </div>
                     </div>
                     {expandedSteps.has(step.id) ? (
-                      <ChevronDown className="h-4 w-4 text-gray-400" />
+                      <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-gray-400" />
+                      <ChevronRight className="h-4 w-4 text-gray-600 dark:text-gray-300" />
                     )}
                   </Button>
 
@@ -115,9 +115,9 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
                         <div>
                           <div className="flex items-center space-x-1 mb-2">
                             <Target className="h-3 w-3 text-blue-500" />
-                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">推論過程</span>
+                            <span className="text-xs font-medium text-gray-900 dark:text-white">推論過程</span>
                           </div>
-                          <p className="text-xs text-gray-800 dark:text-gray-200 leading-relaxed" data-testid={`step-reasoning-${step.stepNumber}`}>
+                          <p className="text-xs text-gray-900 dark:text-white leading-relaxed" data-testid={`step-reasoning-${step.stepNumber}`}>
                             {step.reasoning}
                           </p>
                         </div>
@@ -125,9 +125,9 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
                         <div>
                           <div className="flex items-center space-x-1 mb-2">
                             <CheckCircle className="h-3 w-3 text-green-500" />
-                            <span className="text-xs font-medium text-gray-700 dark:text-gray-300">結論</span>
+                            <span className="text-xs font-medium text-gray-900 dark:text-white">結論</span>
                           </div>
-                          <p className="text-xs text-gray-800 dark:text-gray-200 leading-relaxed" data-testid={`step-conclusion-${step.stepNumber}`}>
+                          <p className="text-xs text-gray-900 dark:text-white leading-relaxed" data-testid={`step-conclusion-${step.stepNumber}`}>
                             {step.conclusion}
                           </p>
                         </div>
@@ -136,7 +136,7 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
                           <div>
                             <div className="flex items-center space-x-1 mb-2">
                               <BookOpen className="h-3 w-3 text-purple-500" />
-                              <span className="text-xs font-medium text-gray-700 dark:text-gray-300">参考情報</span>
+                              <span className="text-xs font-medium text-gray-900 dark:text-white">参考情報</span>
                             </div>
                             <div className="flex flex-wrap gap-1">
                               {step.sources.map((source, sourceIndex) => (
@@ -148,7 +148,7 @@ export default function ReasoningProcess({ reasoningProcess, className = "" }: R
                           </div>
                         )}
 
-                        <div className="flex items-center space-x-1 text-xs text-gray-500">
+                        <div className="flex items-center space-x-1 text-xs text-gray-700 dark:text-gray-300">
                           <Clock className="h-3 w-3" />
                           <span>{new Date(step.timestamp).toLocaleTimeString()}</span>
                         </div>

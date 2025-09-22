@@ -83,9 +83,9 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
           data-testid={`button-toggle-phase-${phaseNumber}`}
         >
           {isExpanded ? (
-            <ChevronUp className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            <ChevronUp className="h-4 w-4 text-gray-800 dark:text-gray-200" />
           ) : (
-            <ChevronDown className="h-4 w-4 text-gray-600 dark:text-gray-400" />
+            <ChevronDown className="h-4 w-4 text-gray-800 dark:text-gray-200" />
           )}
         </Button>
       </div>
@@ -132,7 +132,7 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
                   {analysis.recommendations && analysis.recommendations.length > 0 && (
                     <div className="mt-3">
                       <h5 className="text-xs font-medium text-primary mb-1">推奨事項:</h5>
-                      <ul className="text-xs text-slate-600 dark:text-slate-300 space-y-1">
+                      <ul className="text-xs text-slate-800 dark:text-slate-100 space-y-1">
                         {analysis.recommendations.map((rec, recIndex) => (
                           <li key={recIndex} data-testid={`text-recommendation-${phaseNumber}-${index}-${recIndex}`}>
                             • {rec}
@@ -149,7 +149,7 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
           {/* Strategic alignment display for Phase 4 */}
           {strategicAlignment && (
             <div className="space-y-4">
-              <div className="text-sm text-gray-800 dark:text-gray-200 leading-relaxed mb-4">
+              <div className="text-sm text-gray-900 dark:text-gray-100 leading-relaxed mb-4">
                 現在の経営戦略の整合性評価結果：
               </div>
               
@@ -199,7 +199,7 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
               data-testid={`recommendations-section-${phaseNumber}`}
             >
               <h4 className="font-medium text-secondary mb-3">主要推奨事項</h4>
-              <ul className="text-sm text-gray-800 dark:text-gray-200 space-y-1">
+              <ul className="text-sm text-gray-900 dark:text-gray-100 space-y-1">
                 {phase.recommendations.map((rec, index) => (
                   <li key={index} data-testid={`text-phase-recommendation-${phaseNumber}-${index}`}>
                     • {rec}

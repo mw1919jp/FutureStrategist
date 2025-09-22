@@ -14,7 +14,7 @@
   --secondary: hsl(160, 84%, 39%);
   --secondary-foreground: hsl(210, 40%, 98%);
   --muted: hsl(217, 33%, 17%);
-  --muted-foreground: hsl(215, 20%, 65%);
+  --muted-foreground: hsl(210, 40%, 98%);
   --accent: hsl(43, 96%, 56%);
   --accent-foreground: hsl(222, 84%, 5%);
   --destructive: hsl(0, 72%, 51%);
@@ -113,4 +113,54 @@
 
 .phase-section.phase-5 { 
   border-left-color: hsl(200, 100%, 50%); 
+}
+
+/* High contrast text for reasoning process in dark theme */
+.dark [data-testid="reasoning-process-card"] * {
+  --tw-text-opacity: 1;
+}
+
+/* Reasoning title */
+.dark [data-testid="reasoning-title"] {
+  color: rgb(255 255 255) !important;
+}
+
+/* Step titles */
+.dark [data-testid*="step-title-"] {
+  color: rgb(255 255 255) !important;
+}
+
+/* Step descriptions */
+.dark [data-testid*="step-description-"] {
+  color: rgb(229 231 235) !important;
+}
+
+/* Step reasoning content */
+.dark [data-testid*="step-reasoning-"] {
+  color: rgb(255 255 255) !important;
+}
+
+/* Step conclusions */
+.dark [data-testid*="step-conclusion-"] {
+  color: rgb(255 255 255) !important;
+}
+
+/* All text within reasoning process cards */
+.dark [data-testid="reasoning-process-card"] h4,
+.dark [data-testid="reasoning-process-card"] p,
+.dark [data-testid="reasoning-process-card"] span,
+.dark [data-testid="reasoning-process-card"] div {
+  color: rgb(255 255 255) !important;
+}
+
+/* Override button text colors specifically */
+.dark [data-testid="reasoning-process-card"] button div,
+.dark [data-testid="reasoning-process-card"] button span {
+  color: rgb(255 255 255) !important;
+}
+
+/* Final catch-all for any remaining elements */
+.dark .reasoning-process,
+.dark .reasoning-process * {
+  color: rgb(255 255 255) !important;
 }
