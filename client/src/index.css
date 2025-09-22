@@ -115,16 +115,24 @@
   border-left-color: hsl(200, 100%, 50%); 
 }
 
-/* CRITICAL: Force white text for all analysis content in dark theme */
-html.dark * {
-  color: rgb(255 255 255) !important;
+/* IMPORTANT: Input placeholders FIRST - highest priority */
+html.dark body input::placeholder,
+html.dark body textarea::placeholder,
+html.dark input[data-testid="input-theme"]::placeholder,
+html.dark textarea[data-testid="input-theme"]::placeholder,
+html.dark input[data-testid="input-strategy"]::placeholder,
+html.dark textarea[data-testid="input-strategy"]::placeholder,
+html.dark input[data-testid="input-years"]::placeholder,
+html.dark textarea[data-testid="input-years"]::placeholder {
+  color: rgb(107 114 128) !important; /* gray-500 - much lighter */
+  opacity: 0.6 !important; /* More transparent */
+  font-style: italic !important; /* Italic to clearly indicate it's a placeholder */
+  font-weight: 300 !important; /* Lighter font weight */
 }
 
-/* Exception: Input placeholders should be light gray to distinguish from actual input values */
-html.dark input::placeholder,
-html.dark textarea::placeholder {
-  color: rgb(156 163 175) !important; /* gray-400 */
-  opacity: 0.8;
+/* CRITICAL: Force white text for all analysis content in dark theme - BUT ALLOW OVERRIDES */
+html.dark * {
+  color: rgb(255 255 255) !important;
 }
 
 /* Override only for specific colored elements that should remain colored */
@@ -150,6 +158,48 @@ html.dark .reasoning-process *,
 html.dark [data-testid*="analysis-card"] *,
 html.dark .phase-section * {
   color: rgb(255 255 255) !important;
+}
+
+/* CRITICAL: Maximum specificity for reasoning process contrast */
+html.dark body [data-testid*="step-details-"],
+html.dark body [data-testid*="step-details-"] *,
+html.dark body [data-testid*="step-reasoning-"],
+html.dark body [data-testid*="step-reasoning-"] *,
+html.dark body [data-testid*="step-conclusion-"],
+html.dark body [data-testid*="step-conclusion-"] * {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(17, 24, 39, 0.9) !important; /* Darker background for maximum contrast */
+  padding: 0.5rem !important;
+  border-radius: 0.25rem !important;
+  border: 2px solid rgba(59, 130, 246, 0.5) !important; /* More visible border */
+}
+
+/* CRITICAL: Step titles and descriptions with maximum visibility */
+html.dark body [data-testid^="step-title-1"],
+html.dark body [data-testid^="step-title-2"],
+html.dark body [data-testid^="step-title-3"],
+html.dark body [data-testid^="step-title-4"],
+html.dark body [data-testid^="step-description-1"],
+html.dark body [data-testid^="step-description-2"],
+html.dark body [data-testid^="step-description-3"],
+html.dark body [data-testid^="step-description-4"] {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(17, 24, 39, 0.8) !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important; /* Strong text shadow */
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.25rem !important;
+}
+
+/* CRITICAL: Final conclusion with maximum contrast */
+html.dark body [data-testid="final-conclusion-content"],
+html.dark body [data-testid="final-conclusion-content"] *,
+html.dark body [data-testid*="source-"],
+html.dark body [data-testid*="source-"] * {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(59, 130, 246, 0.2) !important;
+  padding: 0.5rem !important;
+  border-radius: 0.25rem !important;
+  border: 1px solid rgba(59, 130, 246, 0.5) !important;
 }
 
 /* Enhanced contrast for markdown content */
@@ -211,4 +261,62 @@ html.dark [data-testid*="analysis-card"] h3 {
 
 html.dark [data-testid*="analysis-card"] p {
   color: rgb(229 231 235) !important;
+}
+
+/* ====== FINAL OVERRIDE: MAXIMUM SPECIFICITY ====== */
+/* These rules MUST be at the bottom of CSS file to ensure highest priority */
+
+/* FINAL: Placeholder styling with maximum specificity */
+html.dark body form input::placeholder,
+html.dark body form textarea::placeholder,
+html.dark body div input::placeholder,
+html.dark body div textarea::placeholder {
+  color: rgb(107 114 128) !important; 
+  opacity: 0.6 !important; 
+  font-style: italic !important; 
+  font-weight: 300 !important; 
+}
+
+/* FINAL: Individual reasoning step elements with maximum specificity */
+html.dark body div[data-testid="step-title-1"],
+html.dark body div[data-testid="step-title-2"], 
+html.dark body div[data-testid="step-title-3"],
+html.dark body div[data-testid="step-title-4"],
+html.dark body div[data-testid="step-description-1"],
+html.dark body div[data-testid="step-description-2"],
+html.dark body div[data-testid="step-description-3"],
+html.dark body div[data-testid="step-description-4"] {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(17, 24, 39, 0.9) !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+  padding: 0.5rem !important;
+  border-radius: 0.375rem !important;
+  border: 2px solid rgba(59, 130, 246, 0.6) !important;
+  margin: 0.25rem 0 !important;
+}
+
+/* FINAL: Step toggle buttons with maximum contrast */
+html.dark body button[data-testid*="button-toggle-step-"] {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(17, 24, 39, 0.9) !important;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.8) !important;
+  border: 2px solid rgba(59, 130, 246, 0.6) !important;
+  border-radius: 0.5rem !important;
+}
+
+html.dark body button[data-testid*="button-toggle-step-"]:hover {
+  background-color: rgba(17, 24, 39, 0.95) !important;
+  border-color: rgba(59, 130, 246, 0.8) !important;
+}
+
+/* FINAL: Reasoning content areas */
+html.dark body div[data-testid*="step-reasoning-"],
+html.dark body div[data-testid*="step-conclusion-"],
+html.dark body div[data-testid="final-conclusion-content"] {
+  color: rgb(255 255 255) !important;
+  background-color: rgba(17, 24, 39, 0.95) !important;
+  padding: 0.75rem !important;
+  border-radius: 0.5rem !important;
+  border: 2px solid rgba(59, 130, 246, 0.7) !important;
+  margin: 0.5rem 0 !important;
 }
