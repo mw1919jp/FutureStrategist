@@ -48,30 +48,30 @@ export function parseMarkdownToHtml(markdown: string): string {
   // Headers (## and ###) - only process if not already HTML tags
   html = html.replace(/^### (.+)$/gm, (match, content) => {
     if (content.includes('<h3')) return match; // Skip if already HTML
-    return `<h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 mt-4 mb-2">${content}</h3>`;
+    return `<h3 class="text-base font-semibold text-gray-900 dark:text-white mt-4 mb-2">${content}</h3>`;
   });
   
   html = html.replace(/^## (.+)$/gm, (match, content) => {
     if (content.includes('<h2')) return match; // Skip if already HTML
-    return `<h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mt-6 mb-3">${content}</h2>`;
+    return `<h2 class="text-lg font-bold text-gray-900 dark:text-white mt-6 mb-3">${content}</h2>`;
   });
 
   // Bold text (**text**) - only process if not already HTML tags  
   html = html.replace(/\*\*(.+?)\*\*/g, (match, content) => {
     if (content.includes('<strong') || content.includes('<b>')) return match;
-    return `<strong class="font-semibold text-gray-900 dark:text-gray-100">${content}</strong>`;
+    return `<strong class="font-semibold text-gray-900 dark:text-white">${content}</strong>`;
   });
 
   // Bullet points (- item) - only process if not already HTML list
   html = html.replace(/^- (.+)$/gm, (match, content) => {
     if (content.includes('<li')) return match; // Skip if already HTML
-    return `<li class="ml-4 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${content}</li>`;
+    return `<li class="ml-4 text-sm text-gray-900 dark:text-gray-100 leading-relaxed">${content}</li>`;
   });
   
   // Numbered lists (1. item) - only process if not already HTML list
   html = html.replace(/^\d+\. (.+)$/gm, (match, content) => {
     if (content.includes('<li')) return match; // Skip if already HTML
-    return `<li class="ml-4 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">${content}</li>`;
+    return `<li class="ml-4 text-sm text-gray-900 dark:text-gray-100 leading-relaxed">${content}</li>`;
   });
 
   // Wrap consecutive <li> elements in <ul>
@@ -80,22 +80,22 @@ export function parseMarkdownToHtml(markdown: string): string {
   });
 
   // Handle line breaks - escape content between tags
-  html = html.replace(/\n\n/g, '</p><p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed mb-3">');
+  html = html.replace(/\n\n/g, '</p><p class="text-sm text-gray-900 dark:text-gray-100 leading-relaxed mb-3">');
   html = html.replace(/\n/g, '<br>');
 
   // Add CSS classes to existing HTML tags if they don't have them
-  html = html.replace(/<h2(?![^>]*class=)[^>]*>/g, '<h2 class="text-lg font-bold text-gray-900 dark:text-gray-100 mt-6 mb-3">');
-  html = html.replace(/<h3(?![^>]*class=)[^>]*>/g, '<h3 class="text-base font-semibold text-gray-900 dark:text-gray-100 mt-4 mb-2">');
+  html = html.replace(/<h2(?![^>]*class=)[^>]*>/g, '<h2 class="text-lg font-bold text-gray-900 dark:text-white mt-6 mb-3">');
+  html = html.replace(/<h3(?![^>]*class=)[^>]*>/g, '<h3 class="text-base font-semibold text-gray-900 dark:text-white mt-4 mb-2">');
   html = html.replace(/<ul(?![^>]*class=)[^>]*>/g, '<ul class="space-y-1 mb-4">');
-  html = html.replace(/<li(?![^>]*class=)[^>]*>/g, '<li class="ml-4 text-sm text-gray-700 dark:text-gray-300 leading-relaxed">');
-  html = html.replace(/<p(?![^>]*class=)[^>]*>/g, '<p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed mb-3">');
-  html = html.replace(/<strong(?![^>]*class=)[^>]*>/g, '<strong class="font-semibold text-gray-900 dark:text-gray-100">');
+  html = html.replace(/<li(?![^>]*class=)[^>]*>/g, '<li class="ml-4 text-sm text-gray-900 dark:text-gray-100 leading-relaxed">');
+  html = html.replace(/<p(?![^>]*class=)[^>]*>/g, '<p class="text-sm text-gray-900 dark:text-gray-100 leading-relaxed mb-3">');
+  html = html.replace(/<strong(?![^>]*class=)[^>]*>/g, '<strong class="font-semibold text-gray-900 dark:text-white">');
 
   // Wrap in paragraph if no other block elements and not already wrapped
   if (!html.includes('<h1>') && !html.includes('<h2>') && !html.includes('<h3>') && 
       !html.includes('<ul>') && !html.includes('<ol>') && !html.includes('<p>') && 
       !html.includes('<div>') && html.trim()) {
-    html = `<p class="text-sm text-gray-800 dark:text-gray-200 leading-relaxed mb-3">${html}</p>`;
+    html = `<p class="text-sm text-gray-900 dark:text-gray-100 leading-relaxed mb-3">${html}</p>`;
   }
 
   // Clean up any empty paragraphs
