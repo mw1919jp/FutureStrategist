@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { logApiRequest, logApiResponse } from "../utils/logger";
-import type { YearResult } from "@shared/schema";
+import type { YearResult, ReasoningStep, ExpertReasoningProcess } from "@shared/schema";
 
 // the newest OpenAI model is "gpt-5" which was released August 7, 2025. do not change this unless explicitly requested by the user
 const openai = new OpenAI({ 
@@ -43,6 +43,7 @@ export interface ExpertAnalysis {
   expert: string;
   content: string;
   recommendations: string[];
+  reasoningProcess?: ExpertReasoningProcess;
 }
 
 export interface PhaseResult {
@@ -677,7 +678,7 @@ export class OpenAIService {
     }
   }
 
-  async analyzeWithExpert(
+  async analyzeWithExpertReasoning(
     expertName: string, 
     expertRole: string, 
     theme: string, 
@@ -688,7 +689,7 @@ export class OpenAIService {
     analysisId?: string
   ): Promise<ExpertAnalysis> {
     try {
-      const prompt = `あなたは「${expertName}」として、以下の分析を行ってください。
+      const prompt = `あなたは「${expertName}」として、推論プロセスを可視化しながら以下の分析を行ってください。
 
 専門分野: ${expertRole}
 
@@ -697,42 +698,67 @@ export class OpenAIService {
 - 現在の経営戦略: ${currentStrategy}
 - 予測年: ${targetYear}年
 
-${expertName}の視点から、${targetYear}年における上記テーマの影響と、現在の経営戦略に対する専門的な助言を提供してください。
-具体的な課題、機会、推奨事項を含めて分析してください。
-
-**回答は以下の構造化されたマークダウン形式で提供してください:**
-
-## 概要
-**重要なポイント**を**太字**で強調し、2-3文で分析の核心をまとめる
-
-## 詳細分析
-**主要な変化要因:**
-- 市場・技術動向の変化
-- 業界構造の進化要因
-- 規制・社会変化の影響
-
-**リスクと機会:**
-- **主要リスク:** 回避すべき課題
-- **戦略的機会:** 活用すべきチャンス
-
-## 推奨戦略
-1. **短期的施策 (1-3年):** 即座に実行すべき対応
-2. **中期的施策 (3-7年):** 基盤構築のための取り組み  
-3. **長期的施策 (7年以上):** 持続的競争優位の構築
-
-## 結論
-**最重要事項**の要約と、${targetYear}年に向けた戦略的提言
+**分析は段階的な推論プロセスを明示してください。思考の流れを見せることで、結論の説得力を高めます。**
 
 JSON形式で以下の構造で回答してください:
 {
-  "analysis": "上記マークダウン形式の構造化された分析内容（厳密に${characterCount}文字以内）",
-  "recommendations": ["短期的施策1", "中期的施策1", "長期的施策1"]
+  "analysis": "構造化されたマークダウン形式の最終分析内容（厳密に${characterCount}文字以内）",
+  "recommendations": ["短期的施策1", "中期的施策1", "長期的施策1"],
+  "reasoningProcess": {
+    "steps": [
+      {
+        "id": "step1",
+        "stepNumber": 1,
+        "title": "前提条件の整理",
+        "description": "現状認識と分析の出発点を明確化",
+        "reasoning": "なぜこの前提が重要かの論理的説明",
+        "conclusion": "この段階での結論や判断",
+        "confidence": 85,
+        "sources": ["業界レポート", "統計データ"]
+      },
+      {
+        "id": "step2", 
+        "stepNumber": 2,
+        "title": "変化要因の分析",
+        "description": "${targetYear}年までの主要変化要因を特定",
+        "reasoning": "技術・社会・経済変化の相互関係分析",
+        "conclusion": "変化がもたらすインパクト予測",
+        "confidence": 78,
+        "sources": ["技術動向調査", "市場予測"]
+      },
+      {
+        "id": "step3",
+        "stepNumber": 3, 
+        "title": "リスクと機会の評価",
+        "description": "特定した変化から生じるリスクと機会を評価",
+        "reasoning": "確率と影響度を考慮した重要度判定",
+        "conclusion": "優先的に対応すべき項目の特定",
+        "confidence": 82,
+        "sources": ["専門家意見", "ケーススタディ"]
+      },
+      {
+        "id": "step4",
+        "stepNumber": 4,
+        "title": "戦略的対応策の立案",
+        "description": "リスク軽減と機会活用のための具体策",
+        "reasoning": "実現可能性と効果を考慮した優先順位付け",
+        "conclusion": "段階的実装アプローチの提案", 
+        "confidence": 80,
+        "sources": ["ベストプラクティス", "実装事例"]
+      }
+    ],
+    "finalConclusion": "推論プロセス全体から導かれる最終結論",
+    "overallConfidence": 81
+  }
 }
 
-**重要:** 
-- analysis フィールドは必ず${characterCount}文字以内で収めてください
-- HTMLタグ（<strong>、<em>、<p>等）は使用せず、マークダウン記法（**太字**、*斜体*）のみを使用してください
-- 文字数を超過した場合は、重要度の低い部分を削除して調整してください`;
+**重要指針:**
+- reasoningProcess.steps は必ず4段階の推論ステップを含める
+- 各ステップは前のステップの結論を受けて論理的に展開する
+- confidence は客観的根拠に基づく確信度（0-100）
+- sources は実際に参照すべき情報源を記載
+- analysis フィールドは${characterCount}文字以内で最終的な分析結果をまとめる
+- HTMLタグは使用せず、マークダウン記法のみ使用`;
       
       if (analysisId) {
         logApiRequest(analysisId, 1, `専門家分析: ${expertName}`, prompt);
@@ -755,6 +781,23 @@ JSON形式で以下の構造で回答してください:
         expert: expertName,
         content: enforceCharacterLimit(result.analysis || "分析結果を取得できませんでした。", characterCount),
         recommendations: result.recommendations || [],
+        reasoningProcess: result.reasoningProcess ? {
+          expert: expertName,
+          phase: 1,
+          steps: result.reasoningProcess.steps.map((step: any) => ({
+            id: step.id || `step${step.stepNumber}`,
+            stepNumber: step.stepNumber || 1,
+            title: step.title || "",
+            description: step.description || "",
+            reasoning: step.reasoning || "",
+            conclusion: step.conclusion || "",
+            confidence: step.confidence || 50,
+            sources: step.sources || [],
+            timestamp: new Date().toISOString()
+          })),
+          finalConclusion: result.reasoningProcess.finalConclusion || "",
+          overallConfidence: result.reasoningProcess.overallConfidence || 50
+        } : undefined
       };
     } catch (error) {
       console.error("Expert analysis error:", error);

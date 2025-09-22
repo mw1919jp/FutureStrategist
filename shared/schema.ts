@@ -77,6 +77,7 @@ export interface ExpertAnalysis {
   expert: string;
   content: string;
   recommendations: string[];
+  reasoningProcess?: ExpertReasoningProcess;
 }
 
 export interface PhaseResult {
@@ -123,4 +124,25 @@ export interface PartialResults {
   expertAnalyses: PartialExpertAnalysis[];
   yearScenarios: PartialYearScenario[];
   phaseResults: PartialPhaseResult[];
+}
+
+// Reasoning process types for thought visualization
+export interface ReasoningStep {
+  id: string;
+  stepNumber: number;
+  title: string;
+  description: string;
+  reasoning: string;
+  conclusion: string;
+  confidence: number; // 0-100
+  sources?: string[];
+  timestamp: string;
+}
+
+export interface ExpertReasoningProcess {
+  expert: string;
+  phase: number;
+  steps: ReasoningStep[];
+  finalConclusion: string;
+  overallConfidence: number;
 }

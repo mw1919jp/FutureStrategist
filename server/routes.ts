@@ -336,7 +336,7 @@ async function processAnalysis(analysisId: string, scenario: any) {
         const task = limit(async () => {
           try {
             logDebug(analysisId, `Starting analysis for ${expert.name} (${targetYear}年)`);
-            const analysis = await openAIService.analyzeWithExpert(
+            const analysis = await openAIService.analyzeWithExpertReasoning(
               expert.name,
               expert.role,
               scenario.theme,

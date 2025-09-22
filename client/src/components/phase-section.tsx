@@ -2,11 +2,13 @@ import { useState } from "react";
 import { ChevronUp, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { parseMarkdownToHtml } from "@/lib/markdown-parser";
+import ReasoningProcess from "./reasoning-process";
 
 interface PhaseAnalysis {
   expert: string;
   content: string;
   recommendations?: string[];
+  reasoningProcess?: import("@shared/schema").ExpertReasoningProcess;
 }
 
 interface Phase {
@@ -116,6 +118,17 @@ export default function PhaseSection({ phase, phaseNumber }: PhaseSectionProps) 
                     data-testid={`text-expert-analysis-${phaseNumber}-${index}`}
                     dangerouslySetInnerHTML={{ __html: parseMarkdownToHtml(analysis.content) }}
                   />
+                  
+                  {/* Show reasoning process if available */}
+                  {analysis.reasoningProcess && (
+                    <div className="mt-4">
+                      <ReasoningProcess 
+                        reasoningProcess={analysis.reasoningProcess} 
+                        data-testid={`reasoning-process-${phaseNumber}-${index}`}
+                      />
+                    </div>
+                  )}
+                  
                   {analysis.recommendations && analysis.recommendations.length > 0 && (
                     <div className="mt-3">
                       <h5 className="text-xs font-medium text-primary mb-1">推奨事項:</h5>
